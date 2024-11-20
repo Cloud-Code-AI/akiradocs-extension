@@ -1,0 +1,211 @@
+{
+  "defaultRoute": "/docs/getting_started/introduction",
+  "tutorial": {
+    "title": "Tutorial",
+    "items": {
+      "using_table_of_contents_component": {
+        "title": "How-To Guide for Using the TableOfContents Component",
+        "path": "/docs/tutorial/using_table_of_contents_component"
+      },
+      "using_source_interface": {
+        "title": "Using the Source Interface",
+        "path": "/docs/tutorial/using_source_interface"
+      },
+      "using_iconsvg_component": {
+        "title": "How to Use the IconSVG Component",
+        "path": "/docs/tutorial/using_iconSVG_component"
+      },
+      "using_block_post_types": {
+        "title": "How to Utilize Block and Post Types in TypeScript",
+        "path": "/docs/tutorial/using_block_post_types"
+      },
+      "tailwind_css_configuration": {
+        "title": "Tailwind CSS Configuration Guide",
+        "path": "/docs/tutorial/tailwind_css_configuration"
+      },
+      "nextjs_page_component": {
+        "title": "How-To Guide for Next.js Page Component",
+        "path": "/docs/tutorial/nextjs_page_component"
+      },
+      "implementing_sidebar_component": {
+        "title": "How to Implement a Sidebar Component in React",
+        "path": "/docs/tutorial/implementing_sidebar_component"
+      },
+      "getcontents": {
+        "title": "How to Fetch JSON Content with Webpack's require.context",
+        "path": "/docs/tutorial/getContents"
+      },
+      "ai_search_implementation": {
+        "title": "How-To Guide for Implementing AI Search in a React Application",
+        "path": "/docs/tutorial/ai_search_implementation"
+      },
+      "ai_integration": {
+        "title": "How-to Guide for AI Assistant Integration",
+        "path": "/docs/tutorial/ai_integration"
+      }
+    }
+  },
+  "reference": {
+    "title": "Reference",
+    "items": {
+      "typescriptConfiguration": {
+        "title": "TypeScript Configuration Documentation",
+        "path": "/docs/reference/typescript-configuration"
+      },
+      "tailwindCssConfiguration": {
+        "title": "Tailwind CSS Configuration Reference",
+        "path": "/docs/reference/tailwind-css-configuration"
+      },
+      "sourceInterface": {
+        "title": "Technical Reference Documentation for Source Interface",
+        "path": "/docs/reference/source-interface"
+      },
+      "rootLayout": {
+        "title": "Technical Reference for RootLayout Component",
+        "path": "/docs/reference/root-layout"
+      },
+      "navigationTypes": {
+        "title": "Navigation Types Documentation",
+        "path": "/docs/reference/navigation-types"
+      },
+      "getMetadataFunction": {
+        "title": "Get Metadata Function Documentation",
+        "path": "/docs/reference/get-metadata-function"
+      },
+      "getAkiraDocsConfig": {
+        "title": "Getting Started with AkiraDocs",
+        "path": "/docs/reference/get-akira-docs-config"
+      },
+      "fileManagementApi": {
+        "title": "File Management API Documentation",
+        "path": "/docs/reference/file-management-api"
+      },
+      "contentManagementGuide": {
+        "title": "Content Management Guide",
+        "path": "/docs/reference/content-management-guide"
+      },
+      "configurationInterfaces": {
+        "title": "Configuration Interfaces Documentation",
+        "path": "/docs/reference/configuration-interfaces"
+      },
+      "blockTypeDefinition": {
+        "title": "Technical Reference Documentation for Block Types",
+        "path": "/docs/reference/block-type-definition"
+      },
+      "articleInterface": {
+        "title": "Technical Reference Documentation for Article Interface",
+        "path": "/docs/reference/article-interface"
+      },
+      "akiraDocsConfig": {
+        "title": "AkiraDocs Configuration Guide",
+        "path": "/docs/reference/akira-docs-config"
+      }
+    }
+  },
+  "how_to": {
+    "title": "How To",
+    "items": {
+      "use_akiradocs_config": {
+        "title": "How to Use the AkiraDocs Configuration",
+        "path": "/docs/how_to/use_akiradocs_config"
+      },
+      "scroll_area_component": {
+        "title": "How to Use ScrollArea and ScrollBar Components",
+        "path": "/docs/how_to/scroll_area_component"
+      },
+      "input_component": {
+        "title": "Getting Started with the Input Component",
+        "path": "/docs/how_to/input_component"
+      },
+      "improved_file_tree_ui": {
+        "title": "Getting Started with ImprovedFileTreeUI",
+        "path": "/docs/how_to/improved_file_tree_ui"
+      },
+      "implement_sidebar_component": {
+        "title": "How-To Guide for Implementing a Sidebar Component in React",
+        "path": "/docs/how_to/implement_sidebar_component"
+      },
+      "implement_ai_search_in_react": {
+        "title": "How-To Guide for Implementing AI Search in a React Application",
+        "path": "/docs/how_to/implement_ai_search_in_react"
+      },
+      "header_footer_configuration": {
+        "title": "Header and Footer Configuration in TypeScript",
+        "path": "/docs/how_to/header_footer_configuration"
+      },
+      "get_search_config_function": {
+        "title": "Hands-On Tutorial: Understanding and Implementing the `getSearchConfig` Function",
+        "path": "/docs/how_to/get_search_config_function"
+      },
+      "get_header_config_function": {
+        "title": "Understanding and Implementing the getHeaderConfig Function",
+        "path": "/docs/how_to/get_header_config_function"
+      },
+      "file_management_api_nextjs": {
+        "title": "How to Create a File Management API with Next.js",
+        "path": "/docs/how_to/file_management_api_nextjs"
+      },
+      "emoji_component": {
+        "title": "Getting Started with the Emoji Component",
+        "path": "/docs/how_to/emoji_component"
+      },
+      "doc_page_component": {
+        "title": "How-To Guide for Implementing the DocPage Component",
+        "path": "/docs/how_to/doc_page_component"
+      },
+      "divider_component": {
+        "title": "Getting Started with the Divider Component",
+        "path": "/docs/how_to/divider_component"
+      },
+      "custom_select_component": {
+        "title": "How to Set Up and Use a Custom Select Component",
+        "path": "/docs/how_to/custom_select_component"
+      },
+      "configure_tailwind_css": {
+        "title": "Configuring Tailwind CSS with Custom Themes and Animations",
+        "path": "/docs/how_to/configure_tailwind_css"
+      },
+      "article_recommendation_system": {
+        "title": "Getting Started with Article Recommendation System",
+        "path": "/docs/how_to/article_recommendation_system"
+      },
+      "add_block_button_component": {
+        "title": "Getting Started with the AddBlockButton Component",
+        "path": "/docs/how_to/add_block_button_component"
+      }
+    }
+  },
+  "getting_started": {
+    "title": "Getting Started",
+    "items": {
+      "usage": {
+        "title": "Getting Started with Akira Docs",
+        "path": "/docs/getting_started/usage"
+      },
+      "quickstart": {
+        "title": "Quickstart Guide for Akira Docs",
+        "path": "/docs/getting_started/quickstart"
+      },
+      "introduction": {
+        "title": "Getting Started with Akira Docs",
+        "path": "/docs/getting_started/introduction"
+      },
+      "installation": {
+        "title": "Getting Started with Akira Docs Installation",
+        "path": "/docs/getting_started/installation"
+      },
+      "faq": {
+        "title": "Frequently Asked Questions about Akira Docs",
+        "path": "/docs/getting_started/faq"
+      },
+      "configuration": {
+        "title": "Getting Started with Akira Docs Configuration",
+        "path": "/docs/getting_started/configuration"
+      },
+      "advanced_usage": {
+        "title": "Advanced Usage of Akira Docs",
+        "path": "/docs/getting_started/advanced_usage"
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "using_table_of_contents_component": {
+    "title": "How-To Guide for Using the TableOfContents Component",
+    "path": "/docs/tutorial/using_table_of_contents_component"
+  },
+  "using_source_interface": {
+    "title": "Using the Source Interface",
+    "path": "/docs/tutorial/using_source_interface"
+  },
+  "using_iconSVG_component": {
+    "title": "How to Use the IconSVG Component",
+    "path": "/docs/tutorial/using_iconSVG_component"
+  },
+  "using_block_post_types": {
+    "title": "How to Utilize Block and Post Types in TypeScript",
+    "path": "/docs/tutorial/using_block_post_types"
+  },
+  "tailwind_css_configuration": {
+    "title": "Tailwind CSS Configuration Guide",
+    "path": "/docs/tutorial/tailwind_css_configuration"
+  },
+  "nextjs_page_component": {
+    "title": "How-To Guide for Next.js Page Component",
+    "path": "/docs/tutorial/nextjs_page_component"
+  },
+  "implementing_sidebar_component": {
+    "title": "How to Implement a Sidebar Component in React",
+    "path": "/docs/tutorial/implementing_sidebar_component"
+  },
+  "getContents": {
+    "title": "How to Fetch JSON Content with Webpack's require.context",
+    "path": "/docs/tutorial/getContents"
+  },
+  "ai_search_implementation": {
+    "title": "How-To Guide for Implementing AI Search in a React Application",
+    "path": "/docs/tutorial/ai_search_implementation"
+  },
+  "ai_integration": {
+    "title": "How-to Guide for AI Assistant Integration",
+    "path": "/docs/tutorial/ai_integration"
+  }
+}

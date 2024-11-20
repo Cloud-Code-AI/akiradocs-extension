@@ -1,0 +1,70 @@
+{
+  "use_akiradocs_config": {
+    "title": "How to Use the AkiraDocs Configuration",
+    "path": "/docs/how_to/use_akiradocs_config"
+  },
+  "scroll_area_component": {
+    "title": "How to Use ScrollArea and ScrollBar Components",
+    "path": "/docs/how_to/scroll_area_component"
+  },
+  "input_component": {
+    "title": "Getting Started with the Input Component",
+    "path": "/docs/how_to/input_component"
+  },
+  "improved_file_tree_ui": {
+    "title": "Getting Started with ImprovedFileTreeUI",
+    "path": "/docs/how_to/improved_file_tree_ui"
+  },
+  "implement_sidebar_component": {
+    "title": "How-To Guide for Implementing a Sidebar Component in React",
+    "path": "/docs/how_to/implement_sidebar_component"
+  },
+  "implement_ai_search_in_react": {
+    "title": "How-To Guide for Implementing AI Search in a React Application",
+    "path": "/docs/how_to/implement_ai_search_in_react"
+  },
+  "header_footer_configuration": {
+    "title": "Header and Footer Configuration in TypeScript",
+    "path": "/docs/how_to/header_footer_configuration"
+  },
+  "get_search_config_function": {
+    "title": "Hands-On Tutorial: Understanding and Implementing the `getSearchConfig` Function",
+    "path": "/docs/how_to/get_search_config_function"
+  },
+  "get_header_config_function": {
+    "title": "Understanding and Implementing the getHeaderConfig Function",
+    "path": "/docs/how_to/get_header_config_function"
+  },
+  "file_management_api_nextjs": {
+    "title": "How to Create a File Management API with Next.js",
+    "path": "/docs/how_to/file_management_api_nextjs"
+  },
+  "emoji_component": {
+    "title": "Getting Started with the Emoji Component",
+    "path": "/docs/how_to/emoji_component"
+  },
+  "doc_page_component": {
+    "title": "How-To Guide for Implementing the DocPage Component",
+    "path": "/docs/how_to/doc_page_component"
+  },
+  "divider_component": {
+    "title": "Getting Started with the Divider Component",
+    "path": "/docs/how_to/divider_component"
+  },
+  "custom_select_component": {
+    "title": "How to Set Up and Use a Custom Select Component",
+    "path": "/docs/how_to/custom_select_component"
+  },
+  "configure_tailwind_css": {
+    "title": "Configuring Tailwind CSS with Custom Themes and Animations",
+    "path": "/docs/how_to/configure_tailwind_css"
+  },
+  "article_recommendation_system": {
+    "title": "Getting Started with Article Recommendation System",
+    "path": "/docs/how_to/article_recommendation_system"
+  },
+  "add_block_button_component": {
+    "title": "Getting Started with the AddBlockButton Component",
+    "path": "/docs/how_to/add_block_button_component"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "typescript-configuration": {
+    "title": "TypeScript Configuration Documentation",
+    "path": "/docs/reference/typescript-configuration"
+  },
+  "tailwind-css-configuration": {
+    "title": "Tailwind CSS Configuration Reference",
+    "path": "/docs/reference/tailwind-css-configuration"
+  },
+  "source-interface": {
+    "title": "Technical Reference Documentation for Source Interface",
+    "path": "/docs/reference/source-interface"
+  },
+  "root-layout": {
+    "title": "Technical Reference for RootLayout Component",
+    "path": "/docs/reference/root-layout"
+  },
+  "navigation-types": {
+    "title": "Navigation Types Documentation",
+    "path": "/docs/reference/navigation-types"
+  },
+  "get-metadata-function": {
+    "title": "Get Metadata Function Documentation",
+    "path": "/docs/reference/get-metadata-function"
+  },
+  "get-akira-docs-config": {
+    "title": "Getting Started with AkiraDocs",
+    "path": "/docs/reference/get-akira-docs-config"
+  },
+  "file-management-api": {
+    "title": "File Management API Documentation",
+    "path": "/docs/reference/file-management-api"
+  },
+  "content-management-guide": {
+    "title": "Content Management Guide",
+    "path": "/docs/reference/content-management-guide"
+  },
+  "configuration-interfaces": {
+    "title": "Configuration Interfaces Documentation",
+    "path": "/docs/reference/configuration-interfaces"
+  },
+  "block-type-definition": {
+    "title": "Technical Reference Documentation for Block Types",
+    "path": "/docs/reference/block-type-definition"
+  },
+  "article-interface": {
+    "title": "Technical Reference Documentation for Article Interface",
+    "path": "/docs/reference/article-interface"
+  },
+  "akira-docs-config": {
+    "title": "AkiraDocs Configuration Guide",
+    "path": "/docs/reference/akira-docs-config"
+  }
+}

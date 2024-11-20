@@ -1,0 +1,30 @@
+{
+  "usage": {
+    "title": "Getting Started with Akira Docs",
+    "path": "/docs/getting_started/usage"
+  },
+  "quickstart": {
+    "title": "Quickstart Guide for Akira Docs",
+    "path": "/docs/getting_started/quickstart"
+  },
+  "introduction": {
+    "title": "Getting Started with Akira Docs",
+    "path": "/docs/getting_started/introduction"
+  },
+  "installation": {
+    "title": "Getting Started with Akira Docs Installation",
+    "path": "/docs/getting_started/installation"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions about Akira Docs",
+    "path": "/docs/getting_started/faq"
+  },
+  "configuration": {
+    "title": "Getting Started with Akira Docs Configuration",
+    "path": "/docs/getting_started/configuration"
+  },
+  "advanced_usage": {
+    "title": "Advanced Usage of Akira Docs",
+    "path": "/docs/getting_started/advanced_usage"
+  }
+}
