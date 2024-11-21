@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { CompiledFolderView } from "./sidebar/CompiledFolderView";
-import { EditorPanel } from "./webview/EditorPanel";
 import { EditorProvider } from "./EditorProvider";
 
 export function activate(context: vscode.ExtensionContext) {
