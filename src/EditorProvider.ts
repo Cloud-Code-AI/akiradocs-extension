@@ -1,44 +1,3 @@
-// import * as vscode from "vscode";
-
-// export class EditorProvider implements vscode.CustomTextEditorProvider {
-//   constructor(private readonly context: vscode.ExtensionContext) {}
-
-//   async resolveCustomTextEditor(
-//     document: vscode.TextDocument,
-//     webviewPanel: vscode.WebviewPanel,
-//     _token: vscode.CancellationToken
-//   ): Promise<void> {
-//     webviewPanel.webview.options = {
-//       enableScripts: true,
-//     };
-
-//     // Simple HTML for testing
-//     webviewPanel.webview.html = `
-//             <!DOCTYPE html>
-//             <html>
-//             <head>
-//                 <meta charset="UTF-8">
-//                 <style>
-//                     body { padding: 20px; }
-//                     .content { color: var(--vscode-editor-foreground); }
-//                 </style>
-//             </head>
-//             <body>
-//                 <div class="content">
-//                     <h1>Hello from Akira Docs!</h1>
-//                     <p>File: ${document.uri.fsPath}</p>
-//                     <pre>${document.getText()}</pre>
-//                 </div>
-//                 <script>
-//                     const vscode = acquireVsCodeApi();
-//                     // We'll add more functionality here later
-//                 </script>
-//             </body>
-//             </html>
-//         `;
-//   }
-// }
-
 // EditorProvider handles:
 
 // Initial document rendering
@@ -47,6 +6,7 @@
 
 import * as vscode from "vscode";
 import { EditorPanel } from "./webview/EditorPanel";
+import { JsonParser } from "./utils/jsonParser";
 
 export class EditorProvider implements vscode.CustomTextEditorProvider {
   constructor(private readonly context: vscode.ExtensionContext) {}
@@ -56,64 +16,99 @@ export class EditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
-    webviewPanel.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [
-        vscode.Uri.joinPath(this.context.extensionUri, "media"),
-        vscode.Uri.joinPath(this.context.extensionUri, "out"),
-        vscode.Uri.joinPath(this.context.extensionUri, "src", "webview"),
-      ],
-    };
+    try {
+      webviewPanel.webview.options = {
+        enableScripts: true,
+        localResourceRoots: [
+          vscode.Uri.joinPath(this.context.extensionUri, "media"),
+          vscode.Uri.joinPath(this.context.extensionUri, "out"),
+          vscode.Uri.joinPath(this.context.extensionUri, "src", "webview"),
+        ],
+      };
 
-    // Create or show the editor panel
-    EditorPanel.createOrShow(this.context.extensionUri, document.uri);
+      // Log the document URI for debugging
+      console.log("[Extension Host] Document URI:", document.uri.toString());
 
-    webviewPanel.webview.onDidReceiveMessage(async (message) => {
-      switch (message.type) {
-        case "updateDocument":
-          await this.saveDocument(document, message.content);
-          break;
-        case "save":
-          await this.saveDocument(
-            document,
-            JSON.stringify(JSON.parse(message.content), null, 2)
-          );
-          break;
-      }
-    });
+      // Ensure document content is read safely
+      const documentContent = document.getText();
+      const parsedDocument = JsonParser.parseDocument(documentContent);
 
-    // Handle document changes
-    const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
-      (e) => {
-        if (e.document.uri.toString() === document.uri.toString()) {
-          this.updateWebview(webviewPanel.webview, document);
+      // Create or show the editor panel
+      EditorPanel.createOrShow(this.context.extensionUri, document.uri);
+      // this.updateWebview(webviewPanel.webview, document);
+      // Send initial document sync
+      webviewPanel.webview.postMessage({
+        type: "documentSync",
+        content: JSON.stringify(parsedDocument),
+      });
+
+      webviewPanel.webview.onDidReceiveMessage(async (message) => {
+        switch (message.type) {
+          case "updateDocument":
+            await this.saveDocument(document, message.content);
+            break;
+          case "save":
+            await this.saveDocument(
+              document,
+              JSON.stringify(JSON.parse(message.content), null, 2)
+            );
+            break;
         }
-      }
-    );
+      });
 
-    webviewPanel.onDidDispose(() => {
-      changeDocumentSubscription.dispose();
-    });
+      // Handle document changes
+      const changeDocumentSubscription =
+        vscode.workspace.onDidChangeTextDocument((e) => {
+          if (e.document.uri.toString() === document.uri.toString()) {
+            this.updateWebview(webviewPanel.webview, document);
+          }
+        });
 
-    this.updateWebview(webviewPanel.webview, document);
+      webviewPanel.onDidDispose(() => {
+        changeDocumentSubscription.dispose();
+      });
+    } catch (error) {
+      console.error(
+        "[Extension Host] Error in resolveCustomTextEditor:",
+        error
+      );
+      vscode.window.showErrorMessage(
+        `Failed to open document: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   }
   private async saveDocument(document: vscode.TextDocument, content: string) {
-    const edit = new vscode.WorkspaceEdit();
-    edit.replace(
-      document.uri,
-      new vscode.Range(0, 0, document.lineCount, 0),
-      content
-    );
-    await vscode.workspace.applyEdit(edit);
+    try {
+      const edit = new vscode.WorkspaceEdit();
+      edit.replace(
+        document.uri,
+        new vscode.Range(0, 0, document.lineCount, 0),
+        content
+      );
+      await vscode.workspace.applyEdit(edit);
+    } catch (error) {
+      console.error("[Extension Host] Save document error:", error);
+      vscode.window.showErrorMessage(
+        `Failed to save document: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   }
 
   private updateWebview(
     webview: vscode.Webview,
     document: vscode.TextDocument
   ) {
-    webview.postMessage({
-      type: "documentSync",
-      content: document.getText(),
-    });
+    try {
+      webview.postMessage({
+        type: "documentSync",
+        content: document.getText(),
+      });
+    } catch (error) {
+      console.error("[Extension Host] Update webview error:", error);
+    }
   }
 }
