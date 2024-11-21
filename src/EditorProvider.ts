@@ -58,29 +58,26 @@ export class EditorProvider implements vscode.CustomTextEditorProvider {
   ): Promise<void> {
     webviewPanel.webview.options = {
       enableScripts: true,
+      localResourceRoots: [
+        vscode.Uri.joinPath(this.context.extensionUri, "media"),
+        vscode.Uri.joinPath(this.context.extensionUri, "out"),
+        vscode.Uri.joinPath(this.context.extensionUri, "src", "webview"),
+      ],
     };
 
     // Create or show the editor panel
     EditorPanel.createOrShow(this.context.extensionUri, document.uri);
 
-    // webviewPanel.webview.html = this.getHtmlForWebview(
-    //   webviewPanel.webview,
-    //   document
-    // );
-
-    // Handle messages from webview
-    // webviewPanel.webview.onDidReceiveMessage(async (message) => {
-    //   switch (message.type) {
-    //     case "update":
-    //       this.updateTextDocument(document, message.content);
-    //       break;
-    //   }
-    // });
-
     webviewPanel.webview.onDidReceiveMessage(async (message) => {
       switch (message.type) {
-        case "documentSave":
+        case "updateDocument":
           await this.saveDocument(document, message.content);
+          break;
+        case "save":
+          await this.saveDocument(
+            document,
+            JSON.stringify(JSON.parse(message.content), null, 2)
+          );
           break;
       }
     });
@@ -97,6 +94,8 @@ export class EditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.onDidDispose(() => {
       changeDocumentSubscription.dispose();
     });
+
+    this.updateWebview(webviewPanel.webview, document);
   }
   private async saveDocument(document: vscode.TextDocument, content: string) {
     const edit = new vscode.WorkspaceEdit();
@@ -118,167 +117,3 @@ export class EditorProvider implements vscode.CustomTextEditorProvider {
     });
   }
 }
-//   private getHtmlForWebview(
-//     webview: vscode.Webview,
-//     document: vscode.TextDocument
-//   ): string {
-//     try {
-//       const documentData = JSON.parse(document.getText());
-
-//       return `
-//                 <!DOCTYPE html>
-//                 <html>
-//                 <head>
-//                     <meta charset="UTF-8">
-//                     <style>
-//                         body {
-//                             padding: 20px;
-//                             color: var(--vscode-editor-foreground);
-//                             background: var(--vscode-editor-background);
-//                         }
-//                         .editor-container {
-//                             display: flex;
-//                             flex-direction: column;
-//                             gap: 1rem;
-//                         }
-//                         .title-input {
-//                             font-size: 24px;
-//                             background: var(--vscode-input-background);
-//                             color: var(--vscode-input-foreground);
-//                             border: 1px solid var(--vscode-input-border);
-//                             padding: 8px;
-//                             width: 100%;
-//                         }
-//                         .block {
-//                             padding: 8px;
-//                             margin: 4px 0;
-//                             background: var(--vscode-input-background);
-//                             border: 1px solid var(--vscode-input-border);
-//                         }
-//                         button {
-//                             background: var(--vscode-button-background);
-//                             color: var(--vscode-button-foreground);
-//                             border: none;
-//                             padding: 4px 8px;
-//                             cursor: pointer;
-//                         }
-//                         .toolbar {
-//                             margin-bottom: 1rem;
-//                         }
-//                     </style>
-//                 </head>
-//                 <body>
-//                     <div class="editor-container">
-//                         <div class="toolbar">
-//                             <button onclick="addBlock()">Add Block</button>
-//                             <button onclick="saveDocument()">Save</button>
-//                         </div>
-
-//                         <input
-//                             class="title-input"
-//                             type="text"
-//                             value="${documentData.title || ""}"
-//                             placeholder="Document Title"
-//                             onchange="updateTitle(this.value)"
-//                         />
-
-//                         <div id="blocks-container">
-//                             ${this.renderBlocks(documentData.blocks || [])}
-//                         </div>
-//                     </div>
-
-//                     <script>
-//                         const vscode = acquireVsCodeApi();
-//                         let documentData = ${JSON.stringify(documentData)};
-
-//                         function updateDocument() {
-//                             vscode.postMessage({
-//                                 type: 'update',
-//                                 content: JSON.stringify(documentData, null, 2)
-//                             });
-//                         }
-
-//                         function updateTitle(value) {
-//                             documentData.title = value;
-//                             updateDocument();
-//                         }
-
-//                         function updateBlockContent(id, content) {
-//                             const block = documentData.blocks.find(b => b.id === id);
-//                             if (block) {
-//                                 block.content = content;
-//                                 updateDocument();
-//                             }
-//                         }
-
-//                         function addBlock() {
-//                             documentData.blocks = documentData.blocks || [];
-//                             documentData.blocks.push({
-//                                 id: Date.now().toString(),
-//                                 type: 'text',
-//                                 content: ''
-//                             });
-//                             updateDocument();
-//                         }
-
-//                         function saveDocument() {
-//                             const filePath = vscode.window.activeTextEditor.document.uri.fsPath;
-//                             const dataToSave = JSON.stringify(documentData, null, 2);
-//                             vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(dataToSave))
-//                                 .then(() => {
-//                                     vscode.window.showInformationMessage('Document saved successfully!');
-//                                 })
-//                                 .catch(err => {
-//                                     vscode.window.showErrorMessage('Failed to save document: ' + err.message);
-//                                 });
-//                         }
-
-//                         function deleteBlock(id) {
-//                             documentData.blocks = documentData.blocks.filter(b => b.id !== id);
-//                             updateDocument();
-//                         }
-//                     </script>
-//                 </body>
-//                 </html>
-//             `;
-//     } catch (error) {
-//       return `<body>Error parsing document: ${error}</body>`;
-//     }
-//   }
-
-//   private renderBlocks(blocks: any[]): string {
-//     return blocks
-//       .map(
-//         (block) => `
-//             <div class="block" data-block-id="${block.id}">
-//                 <textarea
-//                     onchange="updateBlockContent('${block.id}', this.value)"
-//                     style="width: 100%; min-height: 100px;"
-//                 >${block.content || ""}</textarea>
-//                 <button onclick="deleteBlock('${block.id}')">Delete</button>
-//             </div>
-//         `
-//       )
-//       .join("");
-//   }
-
-//   private updateWebview(
-//     webview: vscode.Webview,
-//     document: vscode.TextDocument
-//   ) {
-//     webview.postMessage({
-//       type: "reload",
-//       content: document.getText(),
-//     });
-//   }
-
-//   private updateTextDocument(document: vscode.TextDocument, content: string) {
-//     const edit = new vscode.WorkspaceEdit();
-//     edit.replace(
-//       document.uri,
-//       new vscode.Range(0, 0, document.lineCount, 0),
-//       content
-//     );
-//     vscode.workspace.applyEdit(edit);
-//   }
-// }

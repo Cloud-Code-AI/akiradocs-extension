@@ -145,7 +145,7 @@
   </body>
 </html> -->
 
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -163,7 +163,7 @@
 
     <div class="editor-container" id="editor">
       <!-- Blocks will be inserted here -->
-    </div>
+<!-- </div>
 
     <script>
       const vscode = acquireVsCodeApi();
@@ -293,6 +293,229 @@
           }
         }
       }
+    </script>
+  </body>
+</html> -->
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      .edit-mode .preview-content {
+        display: none;
+      }
+      .preview-mode .edit-content {
+        display: none;
+      }
+      .block {
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        padding: 10px;
+      }
+      .block-controls {
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <button onclick="toggleMode()">Toggle Edit/Preview</button>
+      <button onclick="addBlock('text')">Add Text Block</button>
+      <button onclick="addBlock('heading')">Add Heading Block</button>
+      <button onclick="saveDocument()">Save</button>
+    </div>
+
+    <div id="editor" class="edit-mode">
+      <div id="document-title" class="edit-content">
+        <input type="text" id="title-input" placeholder="Document Title" />
+      </div>
+      <div id="document-title-preview" class="preview-content">
+        <h1 id="title-preview"></h1>
+      </div>
+
+      <div id="blocks-container"></div>
+    </div>
+
+    <script>
+      const vscode = acquireVsCodeApi();
+      let currentDocument = { title: "", blocks: [] };
+      let currentMode = "edit";
+
+      function toggleMode() {
+        const editor = document.getElementById("editor");
+        currentMode = currentMode === "edit" ? "preview" : "edit";
+
+        editor.className =
+          currentMode === "edit" ? "edit-mode" : "preview-mode";
+
+        if (currentMode === "preview") {
+          renderPreview();
+        }
+      }
+
+      function renderPreview() {
+        // Preview title
+        const titlePreview = document.getElementById("title-preview");
+        titlePreview.textContent = currentDocument.title;
+
+        // Preview blocks
+        const previewContainer = document.createElement("div");
+        previewContainer.id = "blocks-preview";
+        previewContainer.className = "preview-content";
+
+        currentDocument.blocks.forEach((block) => {
+          const blockPreview = document.createElement("div");
+
+          switch (block.type) {
+            case "heading":
+              blockPreview.innerHTML = `<h2>${block.content}</h2>`;
+              break;
+            case "text":
+            default:
+              blockPreview.innerHTML = `<p>${block.content}</p>`;
+          }
+
+          previewContainer.appendChild(blockPreview);
+        });
+
+        // Replace existing preview
+        const existingPreview = document.getElementById("blocks-preview");
+        if (existingPreview) {
+          existingPreview.remove();
+        }
+        document
+          .getElementById("blocks-container")
+          .appendChild(previewContainer);
+      }
+
+      function renderBlocks() {
+        const blocksContainer = document.getElementById("blocks-container");
+        const editContainer = document.createElement("div");
+        editContainer.id = "blocks-edit";
+        editContainer.className = "edit-content";
+
+        currentDocument.blocks.forEach((block, index) => {
+          const blockElement = document.createElement("div");
+          blockElement.className = "block";
+          blockElement.innerHTML = `
+                    <div class="block-controls">
+                        <button onclick="moveBlock('${
+                          block.id
+                        }', 'up')">▲</button>
+                        <button onclick="moveBlock('${
+                          block.id
+                        }', 'down')">▼</button>
+                        <button onclick="deleteBlock('${block.id}')">✖</button>
+                    </div>
+                    <div class="block-edit">
+                        <select onchange="updateBlockType('${
+                          block.id
+                        }', this.value)">
+                            <option value="text" ${
+                              block.type === "text" ? "selected" : ""
+                            }>Text</option>
+                            <option value="heading" ${
+                              block.type === "heading" ? "selected" : ""
+                            }>Heading</option>
+                        </select>
+                        <textarea 
+                            onblur="updateBlockContent('${
+                              block.id
+                            }', this.value)" 
+                            rows="3" 
+                            style="width: 100%;"
+                        >${block.content}</textarea>
+                    </div>
+                `;
+          editContainer.appendChild(blockElement);
+        });
+
+        // Replace existing edit container
+        const existingEdit = document.getElementById("blocks-edit");
+        if (existingEdit) {
+          existingEdit.remove();
+        }
+        document.getElementById("blocks-container").appendChild(editContainer);
+      }
+
+      function addBlock(type) {
+        const newBlock = {
+          id: Date.now().toString(),
+          type: type,
+          content: "",
+        };
+        currentDocument.blocks.push(newBlock);
+        renderBlocks();
+      }
+
+      function updateBlockType(id, type) {
+        const block = currentDocument.blocks.find((b) => b.id === id);
+        if (block) {
+          block.type = type;
+        }
+      }
+
+      function updateBlockContent(id, content) {
+        const block = currentDocument.blocks.find((b) => b.id === id);
+        if (block) {
+          block.content = content;
+        }
+      }
+
+      function deleteBlock(id) {
+        currentDocument.blocks = currentDocument.blocks.filter(
+          (b) => b.id !== id
+        );
+        renderBlocks();
+      }
+
+      function moveBlock(id, direction) {
+        const index = currentDocument.blocks.findIndex((b) => b.id === id);
+        if (index !== -1) {
+          const blocks = currentDocument.blocks;
+          if (direction === "up" && index > 0) {
+            [blocks[index], blocks[index - 1]] = [
+              blocks[index - 1],
+              blocks[index],
+            ];
+          } else if (direction === "down" && index < blocks.length - 1) {
+            [blocks[index], blocks[index + 1]] = [
+              blocks[index + 1],
+              blocks[index],
+            ];
+          }
+          renderBlocks();
+        }
+      }
+
+      function saveDocument() {
+        // Update title from input
+        currentDocument.title = document.getElementById("title-input").value;
+
+        vscode.postMessage({
+          type: "updateDocument",
+          content: JSON.stringify(currentDocument, null, 2),
+        });
+      }
+
+      // Handle messages from the extension
+      window.addEventListener("message", (event) => {
+        const message = event.data;
+        switch (message.type) {
+          case "documentSync":
+            try {
+              currentDocument = JSON.parse(message.content);
+              document.getElementById("title-input").value =
+                currentDocument.title;
+              renderBlocks();
+            } catch (error) {
+              console.error("Failed to parse document:", error);
+            }
+            break;
+        }
+      });
     </script>
   </body>
 </html>

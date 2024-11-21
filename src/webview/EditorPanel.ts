@@ -40,29 +40,29 @@ export class EditorPanel {
     });
 
     // Set up message handling
-    // this._panel.webview.onDidReceiveMessage(
-    //   async (message) => {
-    //     switch (message.type) {
-    //       case "save":
-    //         await this._saveDocument();
-    //         break;
-    //       case "addBlock":
-    //         this._addBlock(message.blockType);
-    //         break;
-    //       case "updateBlock":
-    //         this._updateBlock(message.id, message.content);
-    //         break;
-    //       case "deleteBlock":
-    //         this._deleteBlock(message.id);
-    //         break;
-    //       case "moveBlock":
-    //         this._moveBlock(message.id, message.direction);
-    //         break;
-    //     }
-    //   },
-    //   null,
-    //   this._disposables
-    // );
+    this._panel.webview.onDidReceiveMessage(
+      async (message) => {
+        switch (message.type) {
+          case "save":
+            await this._saveDocument();
+            break;
+          case "addBlock":
+            this._addBlock(message.blockType);
+            break;
+          case "updateBlock":
+            this._updateBlock(message.id, message.content);
+            break;
+          case "deleteBlock":
+            this._deleteBlock(message.id);
+            break;
+          case "moveBlock":
+            this._moveBlock(message.id, message.direction);
+            break;
+        }
+      },
+      null,
+      this._disposables
+    );
     this._panel.webview.onDidReceiveMessage(
       async (message) => {
         switch (message.type) {
@@ -205,6 +205,7 @@ export class EditorPanel {
       "webview",
       "template.html"
     );
+    console.log(htmlPath);
 
     try {
       const htmlContent = fs.readFileSync(htmlPath.fsPath, "utf8");
@@ -215,15 +216,15 @@ export class EditorPanel {
     }
   }
 
-  public dispose() {
-    EditorPanel.currentPanel = undefined;
-    this._panel.dispose();
+  // public dispose() {
+  //   EditorPanel.currentPanel = undefined;
+  //   this._panel.dispose();
 
-    while (this._disposables.length) {
-      const disposable = this._disposables.pop();
-      if (disposable) {
-        disposable.dispose();
-      }
-    }
-  }
+  //   while (this._disposables.length) {
+  //     const disposable = this._disposables.pop();
+  //     if (disposable) {
+  //       disposable.dispose();
+  //     }
+  //   }
+  // }
 }

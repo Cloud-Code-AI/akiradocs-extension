@@ -5,7 +5,7 @@ export interface Block {
   type: "text" | "heading" | "list"; // Supported block types
   content: string;
   metadata?: {
-    level?: number; // For headings (h1, h2, etc.)
+    level?: number;
   };
 }
 
@@ -22,7 +22,7 @@ export class JsonParser {
       return {
         title: doc.title || "Untitled",
         description: doc.description || "",
-        blocks: Array.isArray(doc.blocks) ? doc.blocks : [], // Ensure blocks is an array
+        blocks: Array.isArray(doc.blocks) ? doc.blocks : [],
       };
     } catch (error) {
       console.error("Failed to parse document:", error);
