@@ -2,29 +2,130 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AkiraDocs Editor</title>
     <style>
+      body {
+        font-family: var(--vscode-font-family);
+        font-size: var(--vscode-font-size);
+        color: var(--vscode-editor-foreground);
+        background-color: var(--vscode-editor-background);
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
       .edit-mode .preview-content {
         display: none;
       }
+
       .preview-mode .edit-content {
         display: none;
       }
-      .block {
-        margin-bottom: 10px;
-        border: 1px solid #ddd;
-        padding: 10px;
+
+      #document-title {
+        margin-bottom: 1.5rem;
       }
+
+      #title-input {
+        font-size: 2rem;
+        font-weight: bold;
+        background: transparent;
+        border: none;
+        color: inherit;
+        padding: 0;
+        width: 100%;
+      }
+
+      .block {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
       .block-controls {
         display: flex;
-        justify-content: space-between;
+        gap: 0.25rem;
+      }
+
+      .block-controls button {
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+        border: none;
+        border-radius: 4px;
+      }
+
+      .block-controls button:hover {
+        background-color: var(--vscode-button-hoverBackground);
+      }
+
+      .block-content {
+        flex-grow: 1;
+      }
+
+      .block-content textarea {
+        width: 100%;
+        min-height: 2.5rem;
+        padding: 0.5rem;
+        background-color: var(--vscode-input-background);
+        color: var(--vscode-input-foreground);
+        border: none;
+        border-radius: 4px;
+        resize: none;
+        font-family: inherit;
+        font-size: inherit;
+      }
+
+      button {
+        background-color: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: inherit;
+      }
+
+      button:hover {
+        background-color: var(--vscode-button-hoverBackground);
+      }
+
+      #add-block-btn {
+        display: none;
+        justify-content: center;
+      }
+
+      .block-type {
+        display: none;
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin: 0 0 1.5rem 0;
+      }
+
+      select {
+        display: none;
       }
     </style>
   </head>
+
   <body>
     <div class="toolbar">
-      <button onclick="toggleMode()">Toggle Edit/Preview</button>
-      <button onclick="addBlock('text')">Add Text Block</button>
-      <button onclick="addBlock('heading')">Add Heading Block</button>
+      <button onclick="toggleMode()">Edit / Preview</button>
       <button onclick="saveDocument()">Save</button>
     </div>
 
@@ -36,13 +137,18 @@
         <h1 id="title-preview"></h1>
       </div>
 
-      <div id="blocks-container"></div>
+      <div id="blocks-container">
+        <button id="add-block-btn" class="button" onclick="addBlock('text')">
+          + Add Block
+        </button>
+      </div>
     </div>
 
     <script>
       const vscode = acquireVsCodeApi();
       let currentDocument = { title: "", blocks: [] };
       let currentMode = "edit";
+      let blockCounter = 0;
 
       function toggleMode() {
         const editor = document.getElementById("editor");
@@ -57,11 +163,9 @@
       }
 
       function renderPreview() {
-        // Preview title
         const titlePreview = document.getElementById("title-preview");
         titlePreview.textContent = currentDocument.title;
 
-        // Preview blocks
         const previewContainer = document.createElement("div");
         previewContainer.id = "blocks-preview";
         previewContainer.className = "preview-content";
@@ -81,7 +185,6 @@
           previewContainer.appendChild(blockPreview);
         });
 
-        // Replace existing preview
         const existingPreview = document.getElementById("blocks-preview");
         if (existingPreview) {
           existingPreview.remove();
@@ -110,17 +213,28 @@
                         }', 'down')">▼</button>
                         <button onclick="deleteBlock('${block.id}')">✖</button>
                     </div>
-                    <div class="block-edit">
+                    <div class="block-type">
                         <select onchange="updateBlockType('${
                           block.id
                         }', this.value)">
                             <option value="text" ${
                               block.type === "text" ? "selected" : ""
-                            }>Text</option>
+                            }>T</option>
                             <option value="heading" ${
                               block.type === "heading" ? "selected" : ""
-                            }>Heading</option>
+                            }>H</option>
+                            <option value="list" ${
+                              block.type === "list" ? "selected" : ""
+                            }>=</option>
+                            <option value="code" ${
+                              block.type === "code" ? "selected" : ""
+                            }>&lt;&gt;</option>
+                            <option value="divider" ${
+                              block.type === "divider" ? "selected" : ""
+                            }>-</option>
                         </select>
+                    </div>
+                    <div class="block-content">
                         <textarea 
                             onblur="updateBlockContent('${
                               block.id
@@ -129,25 +243,43 @@
                             style="width: 100%;"
                         >${block.content}</textarea>
                     </div>
+                    <div class="block-controls">
+                        <button onclick="addBlock('${block.type}', '${
+            block.id
+          }')">+</button>
+                    </div>
                 `;
           editContainer.appendChild(blockElement);
         });
 
-        // Replace existing edit container
         const existingEdit = document.getElementById("blocks-edit");
         if (existingEdit) {
           existingEdit.remove();
         }
-        document.getElementById("blocks-container").appendChild(editContainer);
+        blocksContainer.appendChild(editContainer);
+
+        const addBlockBtn = document.getElementById("add-block-btn");
+        addBlockBtn.style.display =
+          currentDocument.blocks.length === 0 ? "block" : "none";
       }
 
-      function addBlock(type) {
+      function addBlock(type, beforeId) {
         const newBlock = {
           id: Date.now().toString(),
           type: type,
           content: "",
         };
-        currentDocument.blocks.push(newBlock);
+
+        if (beforeId) {
+          const index = currentDocument.blocks.findIndex(
+            (b) => b.id === beforeId
+          );
+          currentDocument.blocks.splice(index, 0, newBlock);
+        } else {
+          currentDocument.blocks.push(newBlock);
+        }
+
+        blockCounter++;
         renderBlocks();
       }
 
@@ -156,6 +288,7 @@
         if (block) {
           block.type = type;
         }
+        renderBlocks();
       }
 
       function updateBlockContent(id, content) {
@@ -163,12 +296,14 @@
         if (block) {
           block.content = content;
         }
+        renderBlocks();
       }
 
       function deleteBlock(id) {
         currentDocument.blocks = currentDocument.blocks.filter(
           (b) => b.id !== id
         );
+        blockCounter--;
         renderBlocks();
       }
 
@@ -192,7 +327,6 @@
       }
 
       function saveDocument() {
-        // Update title from input
         currentDocument.title = document.getElementById("title-input").value;
 
         vscode.postMessage({
@@ -201,7 +335,6 @@
         });
       }
 
-      // Handle messages from the extension
       window.addEventListener("message", (event) => {
         const message = event.data;
         switch (message.type) {
@@ -210,6 +343,7 @@
               currentDocument = JSON.parse(message.content);
               document.getElementById("title-input").value =
                 currentDocument.title;
+              blockCounter = currentDocument.blocks.length;
               renderBlocks();
             } catch (error) {
               console.error("Failed to parse document:", error);
@@ -217,6 +351,9 @@
             break;
         }
       });
+
+      // Initial render
+      renderBlocks();
     </script>
   </body>
 </html>
