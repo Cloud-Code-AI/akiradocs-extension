@@ -23,11 +23,9 @@
       }
 
       .edit-mode .preview-content {
-        display: none;
       }
 
       .preview-mode .edit-content {
-        display: none;
       }
 
       #document-title {
@@ -104,21 +102,121 @@
       }
 
       #add-block-btn {
-        display: none;
+        margin-left: 10px;
         justify-content: center;
-      }
-
-      .block-type {
-        display: none;
       }
 
       h1 {
         font-size: 2rem;
         margin: 0 0 1.5rem 0;
       }
-
-      select {
+      .block-type-popup {
         display: none;
+        position: absolute;
+        width: 320px;
+        background: var(--vscode-editor-background);
+        border: 1px solid var(--vscode-widget-border);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+
+      .block-type-popup.active {
+        display: block;
+      }
+
+      .popup-header {
+        padding: 16px 16px 8px;
+      }
+
+      .popup-header h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0 0 8px;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 8px 12px;
+        background: var(--vscode-input-background);
+        color: var(--vscode-input-foreground);
+        border: 1px solid var(--vscode-input-border);
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      .block-options {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .block-group {
+        padding: 8px 16px;
+      }
+
+      .group-title {
+        font-size: 0.875rem;
+        color: var(--vscode-descriptionForeground);
+        margin-bottom: 4px;
+      }
+
+      .block-option {
+        display: flex;
+        align-items: flex-start;
+        padding: 8px 16px;
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: var(--vscode-foreground);
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .block-option:hover {
+        background: var(--vscode-list-hoverBackground);
+      }
+
+      .block-icon {
+        margin-right: 12px;
+        width: 18px;
+        height: 18px;
+        color: var(--vscode-descriptionForeground);
+      }
+
+      .block-info {
+        flex: 1;
+      }
+
+      .block-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 2px;
+      }
+
+      .block-description {
+        font-size: 0.75rem;
+        color: var(--vscode-descriptionForeground);
+      }
+
+      .block-type select:active {
+        display: block;
+      }
+
+      .block-type button {
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+        border: 1px solid var(--vscode-button-border);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .block-type button:hover {
+        background-color: var(--vscode-button-hoverBackground);
       }
     </style>
   </head>
@@ -193,6 +291,118 @@
           .getElementById("blocks-container")
           .appendChild(previewContainer);
       }
+      function createBlockTypePopup(blockId) {
+        const blockTypes = [
+          {
+            type: "text",
+            icon: "T",
+            title: "Text",
+            description: "Just start writing with plain text.",
+            group: "Basic",
+          },
+          {
+            type: "heading",
+            icon: "H",
+            title: "Heading",
+            description: "Large section heading.",
+            group: "Basic",
+          },
+          {
+            type: "list",
+            icon: "=",
+            title: "List",
+            description: "Create a simple bulleted list.",
+            group: "Basic",
+          },
+          {
+            type: "code",
+            icon: "</>",
+            title: "Code",
+            description: "Capture a code snippet.",
+            group: "Basic",
+          },
+          {
+            type: "divider",
+            icon: "—",
+            title: "Divider",
+            description: "Visually divide your page.",
+            group: "Basic",
+          },
+        ];
+
+        const popup = document.createElement("div");
+        popup.className = "block-type-popup";
+        popup.innerHTML = `
+      <div class="popup-header">
+        <h2>Change block type</h2>
+        <input type="text" class="search-input" placeholder="Search for a block type">
+      </div>
+      <div class="block-options">
+        <div class="block-group">
+          <div class="group-title">Basic</div>
+          ${blockTypes
+            .map(
+              (type) => `
+            <button class="block-option" data-type="${type.type}">
+              <span class="block-icon">${type.icon}</span>
+              <div class="block-info">
+                <div class="block-title">${type.title}</div>
+                <div class="block-description">${type.description}</div>
+              </div>
+            </button>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+
+        return popup;
+      }
+
+      function initBlockTypeButton(blockElement) {
+        const typeButton = blockElement.querySelector(".block-type button");
+        const popup = createBlockTypePopup(blockElement.dataset.blockId);
+        document.body.appendChild(popup);
+
+        typeButton.addEventListener("click", (e) => {
+          const rect = typeButton.getBoundingClientRect();
+          popup.style.top = `${rect.bottom + 8}px`;
+          popup.style.left = `${rect.left}px`;
+          popup.classList.toggle("active");
+          e.stopPropagation();
+        });
+
+        const searchInput = popup.querySelector(".search-input");
+        searchInput.addEventListener("input", (e) => {
+          const searchTerm = e.target.value.toLowerCase();
+          const options = popup.querySelectorAll(".block-option");
+          options.forEach((option) => {
+            const title = option
+              .querySelector(".block-title")
+              .textContent.toLowerCase();
+            const description = option
+              .querySelector(".block-description")
+              .textContent.toLowerCase();
+            const matches =
+              title.includes(searchTerm) || description.includes(searchTerm);
+            option.style.display = matches ? "flex" : "none";
+          });
+        });
+
+        popup.querySelectorAll(".block-option").forEach((option) => {
+          option.addEventListener("click", () => {
+            updateBlockType(blockElement.dataset.blockId, option.dataset.type);
+            popup.classList.remove("active");
+          });
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!popup.contains(e.target) && e.target !== typeButton) {
+            popup.classList.remove("active");
+          }
+        });
+      }
 
       function renderBlocks() {
         const blocksContainer = document.getElementById("blocks-container");
@@ -205,48 +415,31 @@
           blockElement.className = "block";
           blockElement.innerHTML = `
                     <div class="block-controls">
-                        <button onclick="moveBlock('${
-                          block.id
-                        }', 'up')">▲</button>
-                        <button onclick="moveBlock('${
-                          block.id
-                        }', 'down')">▼</button>
-                        <button onclick="deleteBlock('${block.id}')">✖</button>
+                        <button onclick="moveBlock('${block.id}', 'up')">▲</button>
+                        <button onclick="moveBlock('${block.id}', 'down')">▼</button>
                     </div>
                     <div class="block-type">
-                        <select onchange="updateBlockType('${
-                          block.id
-                        }', this.value)">
-                            <option value="text" ${
-                              block.type === "text" ? "selected" : ""
-                            }>T</option>
-                            <option value="heading" ${
-                              block.type === "heading" ? "selected" : ""
-                            }>H</option>
-                            <option value="list" ${
-                              block.type === "list" ? "selected" : ""
-                            }>=</option>
-                            <option value="code" ${
-                              block.type === "code" ? "selected" : ""
-                            }>&lt;&gt;</option>
-                            <option value="divider" ${
-                              block.type === "divider" ? "selected" : ""
-                            }>-</option>
-                        </select>
+                      <button type="button" aria-label="Change block type">T</button>
+                          <select style="display: none;">
+                              <option value="text" selected>T</option>
+                              <option value="heading">H</option>
+                              <option value="list">=</option>
+                              <option value="code">&lt;&gt;</option>
+                              <option value="divider">-</option>
+                          </select>
+                    </div>
+                    <div class="block-controls">
+                      <button onclick="addBlock('${block.type}', '${block.id}')">+</button>
                     </div>
                     <div class="block-content">
                         <textarea 
-                            onblur="updateBlockContent('${
-                              block.id
-                            }', this.value)" 
+                            onblur="updateBlockContent('${block.id}', this.value)" 
                             rows="3" 
-                            style="width: 100%;"
+                            style="width: 98%;"
                         >${block.content}</textarea>
                     </div>
                     <div class="block-controls">
-                        <button onclick="addBlock('${block.type}', '${
-            block.id
-          }')">+</button>
+                        <button onclick="deleteBlock('${block.id}')">✖</button>
                     </div>
                 `;
           editContainer.appendChild(blockElement);
@@ -296,7 +489,6 @@
         if (block) {
           block.content = content;
         }
-        renderBlocks();
       }
 
       function deleteBlock(id) {
@@ -351,7 +543,8 @@
             break;
         }
       });
-
+      // Initialize all block type buttons
+      document.querySelectorAll(".block").forEach(initBlockTypeButton);
       // Initial render
       renderBlocks();
     </script>
