@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AkiraDocs Editor</title>
     <style>
       body {
         font-family: var(--vscode-font-family);
@@ -23,9 +22,11 @@
       }
 
       .edit-mode .preview-content {
+        display: none;
       }
 
       .preview-mode .edit-content {
+        display: none;
       }
 
       #document-title {
@@ -119,6 +120,8 @@
         border-radius: 6px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         z-index: 1000;
+        max-height: 400px;
+        overflow-y: auto;
       }
 
       .block-type-popup.active {
@@ -127,6 +130,10 @@
 
       .popup-header {
         padding: 16px 16px 8px;
+        position: sticky;
+        top: 0;
+        background: var(--vscode-editor-background);
+        z-index: 1;
       }
 
       .popup-header h2 {
@@ -146,8 +153,7 @@
       }
 
       .block-options {
-        max-height: 300px;
-        overflow-y: auto;
+        padding-bottom: 16px;
       }
 
       .block-group {
@@ -218,6 +224,31 @@
       .block-type button:hover {
         background-color: var(--vscode-button-hoverBackground);
       }
+
+      .preview-content img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .preview-content blockquote {
+        border-left: 4px solid var(--vscode-textBlockQuote-border);
+        margin: 0;
+        padding-left: 1rem;
+        color: var(--vscode-textBlockQuote-foreground);
+      }
+
+      .preview-content .callout {
+        background-color: var(--vscode-textCodeBlock-background);
+        border-left: 4px solid var(--vscode-textLink-activeForeground);
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .preview-content pre {
+        background-color: var(--vscode-textCodeBlock-background);
+        padding: 1rem;
+        overflow-x: auto;
+      }
     </style>
   </head>
 
@@ -231,12 +262,14 @@
       <div id="document-title" class="edit-content">
         <input type="text" id="title-input" placeholder="Document Title" />
       </div>
-      <div id="document-title-preview" class="preview-content">
-        <h1 id="title-preview"></h1>
-      </div>
+      <div id="document-title-preview" class="preview-content"></div>
 
       <div id="blocks-container">
-        <button id="add-block-btn" class="button" onclick="addBlock('text')">
+        <button
+          id="add-block-btn"
+          class="button"
+          onclick="addBlock('paragraph')"
+        >
           + Add Block
         </button>
       </div>
@@ -247,6 +280,65 @@
       let currentDocument = { title: "", blocks: [] };
       let currentMode = "edit";
       let blockCounter = 0;
+
+      const blockTypes = [
+        {
+          type: "paragraph",
+          icon: "T",
+          label: "Text",
+          description: "Just start writing with plain text.",
+          group: "Basic",
+        },
+        {
+          type: "heading",
+          icon: "H",
+          label: "Heading",
+          description: "Large section heading.",
+          group: "Basic",
+        },
+        {
+          type: "list",
+          icon: "=",
+          label: "List",
+          description: "Create a simple bulleted list.",
+          group: "Basic",
+        },
+        {
+          type: "code",
+          icon: "<>",
+          label: "Code",
+          description: "Capture a code snippet.",
+          group: "Basic",
+        },
+        {
+          type: "image",
+          icon: "🖼️",
+          label: "Image",
+          description: "Upload or embed with a link.",
+          group: "Media",
+        },
+        {
+          type: "divider",
+          icon: "—",
+          label: "Divider",
+          description: "Visually divide your page.",
+          group: "Basic",
+        },
+        {
+          type: "blockquote",
+          icon: '"',
+          label: "Quote",
+          description: "Capture a quote.",
+          group: "Basic",
+        },
+        {
+          type: "callout",
+          icon: "!",
+          label: "Callout",
+          description: "Make writing stand out.",
+          group: "Advanced",
+        },
+      ];
 
       function toggleMode() {
         const editor = document.getElementById("editor");
@@ -261,8 +353,8 @@
       }
 
       function renderPreview() {
-        const titlePreview = document.getElementById("title-preview");
-        titlePreview.textContent = currentDocument.title;
+        const titlePreview = document.getElementById("document-title-preview");
+        titlePreview.innerHTML = `<h1>${currentDocument.title}</h1>`;
 
         const previewContainer = document.createElement("div");
         previewContainer.id = "blocks-preview";
@@ -275,7 +367,30 @@
             case "heading":
               blockPreview.innerHTML = `<h2>${block.content}</h2>`;
               break;
-            case "text":
+            case "paragraph":
+              blockPreview.innerHTML = `<p>${block.content}</p>`;
+              break;
+            case "list":
+              blockPreview.innerHTML = `<ul>${block.content
+                .split("\n")
+                .map((item) => `<li>${item}</li>`)
+                .join("")}</ul>`;
+              break;
+            case "code":
+              blockPreview.innerHTML = `<pre><code>${block.content}</code></pre>`;
+              break;
+            case "image":
+              blockPreview.innerHTML = `<img src="${block.content}" alt="User uploaded image">`;
+              break;
+            case "divider":
+              blockPreview.innerHTML = `<hr>`;
+              break;
+            case "blockquote":
+              blockPreview.innerHTML = `<blockquote>${block.content}</blockquote>`;
+              break;
+            case "callout":
+              blockPreview.innerHTML = `<div class="callout">${block.content}</div>`;
+              break;
             default:
               blockPreview.innerHTML = `<p>${block.content}</p>`;
           }
@@ -291,71 +406,41 @@
           .getElementById("blocks-container")
           .appendChild(previewContainer);
       }
-      function createBlockTypePopup(blockId) {
-        const blockTypes = [
-          {
-            type: "text",
-            icon: "T",
-            title: "Text",
-            description: "Just start writing with plain text.",
-            group: "Basic",
-          },
-          {
-            type: "heading",
-            icon: "H",
-            title: "Heading",
-            description: "Large section heading.",
-            group: "Basic",
-          },
-          {
-            type: "list",
-            icon: "=",
-            title: "List",
-            description: "Create a simple bulleted list.",
-            group: "Basic",
-          },
-          {
-            type: "code",
-            icon: "</>",
-            title: "Code",
-            description: "Capture a code snippet.",
-            group: "Basic",
-          },
-          {
-            type: "divider",
-            icon: "—",
-            title: "Divider",
-            description: "Visually divide your page.",
-            group: "Basic",
-          },
-        ];
 
+      function createBlockTypePopup(blockId) {
         const popup = document.createElement("div");
         popup.className = "block-type-popup";
         popup.innerHTML = `
-      <div class="popup-header">
-        <h2>Change block type</h2>
-        <input type="text" class="search-input" placeholder="Search for a block type">
-      </div>
-      <div class="block-options">
-        <div class="block-group">
-          <div class="group-title">Basic</div>
-          ${blockTypes
-            .map(
-              (type) => `
-            <button class="block-option" data-type="${type.type}">
-              <span class="block-icon">${type.icon}</span>
-              <div class="block-info">
-                <div class="block-title">${type.title}</div>
-                <div class="block-description">${type.description}</div>
+          <div class="popup-header">
+            <h2>Change block type</h2>
+            <input type="text" class="search-input" placeholder="Search for a block type">
+          </div>
+          <div class="block-options">
+            ${["Basic", "Media", "Advanced"]
+              .map(
+                (group) => `
+              <div class="block-group">
+                <div class="group-title">${group}</div>
+                ${blockTypes
+                  .filter((type) => type.group === group)
+                  .map(
+                    (type) => `
+                  <button class="block-option" data-type="${type.type}">
+                    <span class="block-icon">${type.icon}</span>
+                    <div class="block-info">
+                      <div class="block-title">${type.label}</div>
+                      <div class="block-description">${type.description}</div>
+                    </div>
+                  </button>
+                `
+                  )
+                  .join("")}
               </div>
-            </button>
-          `
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
+            `
+              )
+              .join("")}
+          </div>
+        `;
 
         return popup;
       }
@@ -413,27 +498,31 @@
         currentDocument.blocks.forEach((block, index) => {
           const blockElement = document.createElement("div");
           blockElement.className = "block";
+          blockElement.dataset.blockId = block.id;
           blockElement.innerHTML = `
                     <div class="block-controls">
-                        <button onclick="moveBlock('${block.id}', 'up')">▲</button>
-                        <button onclick="moveBlock('${block.id}', 'down')">▼</button>
+                        <button onclick="moveBlock('${
+                          block.id
+                        }', 'up')">▲</button>
+                        <button onclick="moveBlock('${
+                          block.id
+                        }', 'down')">▼</button>
                     </div>
                     <div class="block-type">
-                      <button type="button" aria-label="Change block type">T</button>
-                          <select style="display: none;">
-                              <option value="text" selected>T</option>
-                              <option value="heading">H</option>
-                              <option value="list">=</option>
-                              <option value="code">&lt;&gt;</option>
-                              <option value="divider">-</option>
-                          </select>
+                      <button type="button" aria-label="Change block type">${getBlockTypeIcon(
+                        block.type
+                      )}</button>
                     </div>
                     <div class="block-controls">
-                      <button onclick="addBlock('${block.type}', '${block.id}')">+</button>
+                      <button onclick="addBlock('paragraph', '${
+                        block.id
+                      }')">+</button>
                     </div>
                     <div class="block-content">
                         <textarea 
-                            onblur="updateBlockContent('${block.id}', this.value)" 
+                            onblur="updateBlockContent('${
+                              block.id
+                            }', this.value)" 
                             rows="3" 
                             style="width: 98%;"
                         >${block.content}</textarea>
@@ -443,6 +532,7 @@
                     </div>
                 `;
           editContainer.appendChild(blockElement);
+          initBlockTypeButton(blockElement);
         });
 
         const existingEdit = document.getElementById("blocks-edit");
@@ -454,6 +544,11 @@
         const addBlockBtn = document.getElementById("add-block-btn");
         addBlockBtn.style.display =
           currentDocument.blocks.length === 0 ? "block" : "none";
+      }
+
+      function getBlockTypeIcon(type) {
+        const blockType = blockTypes.find((bt) => bt.type === type);
+        return blockType ? blockType.icon : "T";
       }
 
       function addBlock(type, beforeId) {
@@ -543,9 +638,7 @@
             break;
         }
       });
-      // Initialize all block type buttons
-      document.querySelectorAll(".block").forEach(initBlockTypeButton);
-      // Initial render
+
       renderBlocks();
     </script>
   </body>

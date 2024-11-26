@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
             canSelectFolders: false,
             canSelectMany: false,
             filters: {
-              "Akira Documents": [".json"],
+              "AkiraDocs Files": [".json"],
             },
           });
 
