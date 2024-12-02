@@ -35,6 +35,7 @@ export class EditorPanel {
 
     // Load initial document
     vscode.workspace.fs.readFile(documentUri).then((content) => {
+      console.log("Initial document content:", content.toString());
       this._document = JsonParser.parseDocument(content.toString());
       this._updateWebview();
     });
@@ -43,6 +44,11 @@ export class EditorPanel {
     this._panel.webview.onDidReceiveMessage(
       async (message) => {
         switch (message.type) {
+          case "documentSync":
+            this._document =
+              message.document || JsonParser.parseDocument(message.content);
+            this._updateWebview();
+            break;
           case "save":
             await this._saveDocument();
             break;
@@ -78,15 +84,19 @@ export class EditorPanel {
 
   private _updateDocument(content: string) {
     try {
-      const updatedDocument = JSON.parse(content);
+      console.log("Received content:", content);
+      const updatedDocument = JsonParser.parseDocument(content);
+      console.log("Parsed document:", updatedDocument);
       this._document = updatedDocument;
       this._updateWebview();
     } catch (error) {
+      console.error("Failed to update document:", error);
       vscode.window.showErrorMessage("Failed to update document");
     }
   }
 
   private _updateWebview() {
+    console.log("Updating webview with document:", this._document);
     this._panel.webview.postMessage({
       type: "update",
       document: this._document,
@@ -193,6 +203,18 @@ export class EditorPanel {
       extensionUri,
       documentUri
     );
+
+    vscode.workspace.fs.readFile(documentUri).then((content) => {
+      try {
+        const parsedDocument = JsonParser.parseDocument(content.toString());
+        EditorPanel.currentPanel?._panel.webview.postMessage({
+          type: "documentSync",
+          document: parsedDocument,
+        });
+      } catch (error) {
+        vscode.window.showErrorMessage("Failed to parse document");
+      }
+    });
   }
 
   private _getWebviewContent(

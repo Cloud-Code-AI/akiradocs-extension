@@ -18,6 +18,7 @@ export interface Document {
 export class JsonParser {
   static parseDocument(jsonString: string): Document {
     try {
+      console.log("try block of Json parser");
       const doc = JSON.parse(jsonString);
       return {
         title: doc.title || "Untitled",

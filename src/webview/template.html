@@ -277,7 +277,15 @@
 
     <script>
       const vscode = acquireVsCodeApi();
-      let currentDocument = { title: "", blocks: [] };
+      let currentDocument = {
+        title: "",
+        description: "",
+        author: "",
+        publishDate: "",
+        category: "",
+        keywords: [],
+        blocks: [],
+      };
       let currentMode = "edit";
       let blockCounter = 0;
 
@@ -354,8 +362,16 @@
 
       function renderPreview() {
         const titlePreview = document.getElementById("document-title-preview");
-        titlePreview.innerHTML = `<h1>${currentDocument.title}</h1>`;
-
+        titlePreview.innerHTML = `
+        <h1>${currentDocument.title}</h1>
+        <div class="metadata">
+            <p>${currentDocument.description}</p>
+            <p>Author: ${currentDocument.author}</p>
+            <p>Published: ${currentDocument.publishDate}</p>
+            <p>Category: ${currentDocument.category}</p>
+            <p>Keywords: ${currentDocument.keywords.join(", ")}</p>
+        </div>
+    `;
         const previewContainer = document.createElement("div");
         previewContainer.id = "blocks-preview";
         previewContainer.className = "preview-content";
@@ -625,15 +641,36 @@
       window.addEventListener("message", (event) => {
         const message = event.data;
         switch (message.type) {
-          case "documentSync":
+          case "update":
+            console.log("Received document:", message.document);
+
+            if (!message.document) {
+              console.error("No content received in update message");
+              vscode.postMessage({
+                type: "error",
+                message: "No document content provided",
+              });
+              return;
+            }
+
             try {
-              currentDocument = JSON.parse(message.content);
+              console.log("template.html : Try block of documentSync");
+              // currentDocument = JSON.parse(message.document);
+              currentDocument = message.document;
+              currentDocument.title = currentDocument.title || "Untitled";
+              currentDocument.description = currentDocument.description || "";
+              currentDocument.blocks = currentDocument.blocks || [];
+
               document.getElementById("title-input").value =
                 currentDocument.title;
               blockCounter = currentDocument.blocks.length;
               renderBlocks();
             } catch (error) {
               console.error("Failed to parse document:", error);
+              vscode.postMessage({
+                type: "error",
+                message: "Failed to parse document",
+              });
             }
             break;
         }

@@ -1,4 +1,6 @@
 // src/webview/blocks/BlockManager.ts
+
+// to be used to convert shad-cn/react components to json and vscode friendly code
 import { Block } from "./jsonParser";
 export class BlockManager {
   private blocks: Block[] = [];

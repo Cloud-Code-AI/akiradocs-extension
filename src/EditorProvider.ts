@@ -74,6 +74,7 @@ export class EditorProvider implements vscode.CustomTextEditorProvider {
           await this.saveDocument(document, message.content);
           break;
         case "save":
+          console.log("EditorProvider, case save: ");
           await this.saveDocument(
             document,
             JSON.stringify(JSON.parse(message.content), null, 2)
