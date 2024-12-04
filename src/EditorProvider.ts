@@ -47,7 +47,7 @@
 
 import * as vscode from "vscode";
 import { EditorPanel } from "./webview/EditorPanel";
-
+import { JsonParser } from "./utils/jsonParser";
 export class EditorProvider implements vscode.CustomTextEditorProvider {
   constructor(private readonly context: vscode.ExtensionContext) {}
 
@@ -108,13 +108,29 @@ export class EditorProvider implements vscode.CustomTextEditorProvider {
     await vscode.workspace.applyEdit(edit);
   }
 
+  // private updateWebview(
+  //   webview: vscode.Webview,
+  //   document: vscode.TextDocument
+  // ) {
+  //   webview.postMessage({
+  //     type: "documentSync",
+  //     content: document.getText(),
+  //   });
+  // }
+
   private updateWebview(
     webview: vscode.Webview,
     document: vscode.TextDocument
   ) {
-    webview.postMessage({
-      type: "documentSync",
-      content: document.getText(),
-    });
+    try {
+      const parsedDocument = JsonParser.parseDocument(document.getText());
+      webview.postMessage({
+        type: "update",
+        document: parsedDocument,
+      });
+    } catch (error) {
+      console.error("Failed to parse document in updateWebview:", error);
+      vscode.window.showErrorMessage("Failed to load document");
+    }
   }
 }

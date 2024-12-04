@@ -249,6 +249,70 @@
         padding: 1rem;
         overflow-x: auto;
       }
+      .selection-tooltip {
+        position: absolute;
+        background: var(--vscode-editor-background);
+        border: 1px solid var(--vscode-widget-border);
+        border-radius: 4px;
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+      }
+
+      .selection-tooltip button {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid var(--vscode-button-border);
+        border-radius: 4px;
+        color: var(--vscode-button-foreground);
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .selection-tooltip button:hover {
+        background: var(--vscode-button-hoverBackground);
+      }
+
+      .ai-popup {
+        position: absolute;
+        background: var(--vscode-editor-background);
+        border: 1px solid var(--vscode-widget-border);
+        border-radius: 4px;
+        padding: 8px;
+        width: 300px;
+        z-index: 1000;
+      }
+
+      .ai-popup textarea {
+        width: 100%;
+        min-height: 60px;
+        margin-bottom: 8px;
+        background: var(--vscode-input-background);
+        color: var(--vscode-input-foreground);
+        border: 1px solid var(--vscode-input-border);
+        border-radius: 4px;
+        padding: 4px;
+      }
+
+      .tone-selector {
+        margin-bottom: 8px;
+      }
+
+      .tone-selector select {
+        width: 100%;
+        padding: 4px;
+        background: var(--vscode-dropdown-background);
+        color: var(--vscode-dropdown-foreground);
+        border: 1px solid var(--vscode-dropdown-border);
+        border-radius: 4px;
+      }
     </style>
   </head>
 
@@ -288,6 +352,8 @@
       };
       let currentMode = "edit";
       let blockCounter = 0;
+      let tooltip = null;
+      let aiPopup = null;
 
       const blockTypes = [
         {
@@ -363,15 +429,16 @@
       function renderPreview() {
         const titlePreview = document.getElementById("document-title-preview");
         titlePreview.innerHTML = `
-        <h1>${currentDocument.title}</h1>
-        <div class="metadata">
-            <p>${currentDocument.description}</p>
-            <p>Author: ${currentDocument.author}</p>
-            <p>Published: ${currentDocument.publishDate}</p>
-            <p>Category: ${currentDocument.category}</p>
-            <p>Keywords: ${currentDocument.keywords.join(", ")}</p>
-        </div>
-    `;
+          <h1>${currentDocument.title}</h1>
+
+          <div class="metadata">
+              <p>${currentDocument.description}</p>
+              <p>Author: ${currentDocument.author}</p>
+              <p>Published: ${currentDocument.publishDate}</p>
+              <p>Category: ${currentDocument.category}</p>
+              <p>Keywords: ${currentDocument.keywords.join(", ")}</p>
+          </div>
+      `;
         const previewContainer = document.createElement("div");
         previewContainer.id = "blocks-preview";
         previewContainer.className = "preview-content";
@@ -427,36 +494,36 @@
         const popup = document.createElement("div");
         popup.className = "block-type-popup";
         popup.innerHTML = `
-          <div class="popup-header">
-            <h2>Change block type</h2>
-            <input type="text" class="search-input" placeholder="Search for a block type">
-          </div>
-          <div class="block-options">
-            ${["Basic", "Media", "Advanced"]
-              .map(
-                (group) => `
-              <div class="block-group">
-                <div class="group-title">${group}</div>
-                ${blockTypes
-                  .filter((type) => type.group === group)
-                  .map(
-                    (type) => `
-                  <button class="block-option" data-type="${type.type}">
-                    <span class="block-icon">${type.icon}</span>
-                    <div class="block-info">
-                      <div class="block-title">${type.label}</div>
-                      <div class="block-description">${type.description}</div>
-                    </div>
-                  </button>
-                `
-                  )
-                  .join("")}
-              </div>
-            `
-              )
-              .join("")}
-          </div>
-        `;
+            <div class="popup-header">
+              <h2>Change block type</h2>
+              <input type="text" class="search-input" placeholder="Search for a block type">
+            </div>
+            <div class="block-options">
+              ${["Basic", "Media", "Advanced"]
+                .map(
+                  (group) => `
+                <div class="block-group">
+                  <div class="group-title">${group}</div>
+                  ${blockTypes
+                    .filter((type) => type.group === group)
+                    .map(
+                      (type) => `
+                    <button class="block-option" data-type="${type.type}">
+                      <span class="block-icon">${type.icon}</span>
+                      <div class="block-info">
+                        <div class="block-title">${type.label}</div>
+                        <div class="block-description">${type.description}</div>
+                      </div>
+                    </button>
+                  `
+                    )
+                    .join("")}
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+          `;
 
         return popup;
       }
@@ -510,43 +577,46 @@
         const editContainer = document.createElement("div");
         editContainer.id = "blocks-edit";
         editContainer.className = "edit-content";
+        currentDocument.blocks = currentDocument.blocks || [];
 
         currentDocument.blocks.forEach((block, index) => {
           const blockElement = document.createElement("div");
           blockElement.className = "block";
           blockElement.dataset.blockId = block.id;
           blockElement.innerHTML = `
-                    <div class="block-controls">
-                        <button onclick="moveBlock('${
+                      <div class="block-controls">
+                          <button onclick="moveBlock('${
+                            block.id
+                          }', 'up')">▲</button>
+                          <button onclick="moveBlock('${
+                            block.id
+                          }', 'down')">▼</button>
+                      </div>
+                      <div class="block-type">
+                        <button type="button" aria-label="Change block type">${getBlockTypeIcon(
+                          block.type
+                        )}</button>
+                      </div>
+                      <div class="block-controls">
+                        <button onclick="addBlock('paragraph', '${
                           block.id
-                        }', 'up')">▲</button>
-                        <button onclick="moveBlock('${
-                          block.id
-                        }', 'down')">▼</button>
-                    </div>
-                    <div class="block-type">
-                      <button type="button" aria-label="Change block type">${getBlockTypeIcon(
-                        block.type
-                      )}</button>
-                    </div>
-                    <div class="block-controls">
-                      <button onclick="addBlock('paragraph', '${
-                        block.id
-                      }')">+</button>
-                    </div>
-                    <div class="block-content">
-                        <textarea 
-                            onblur="updateBlockContent('${
-                              block.id
-                            }', this.value)" 
-                            rows="3" 
-                            style="width: 98%;"
-                        >${block.content}</textarea>
-                    </div>
-                    <div class="block-controls">
-                        <button onclick="deleteBlock('${block.id}')">✖</button>
-                    </div>
-                `;
+                        }')">+</button>
+                      </div>
+                      <div class="block-content">
+                          <textarea
+                              onblur="updateBlockContent('${
+                                block.id
+                              }', this.value)"
+                              rows="3"
+                              style="width: 98%;"
+                          >${block.content || ""}</textarea>
+                      </div>
+                      <div class="block-controls">
+                          <button onclick="deleteBlock('${
+                            block.id
+                          }')">✖</button>
+                      </div>
+                  `;
           editContainer.appendChild(blockElement);
           initBlockTypeButton(blockElement);
         });
@@ -638,10 +708,218 @@
         });
       }
 
+      /////////////testing text editing
+
+      // document.addEventListener("mouseup", function (event) {
+      //   const selectedText = window.getSelection().toString().trim();
+      //   if (selectedText) {
+      //     showSelectionTooltip(event, selectedText);
+      //   } else {
+      //     dismissTooltip();
+      //   }
+      // });
+
+      // function showSelectionTooltip(event, selectedText) {
+      //   dismissTooltip();
+
+      //   tooltip = document.createElement("div");
+      //   tooltip.className = "selection-tooltip";
+      //   tooltip.innerHTML = `
+      //     <button onclick="applyTextFormat('bold')">B</button>
+      //     <button onclick="applyTextFormat('italic')">I</button>
+      //     <button onclick="sendToAI('${selectedText}')">AI</button>
+      // `;
+
+      //   tooltip.style.position = "absolute";
+      //   tooltip.style.top = `${event.pageY}px`;
+      //   tooltip.style.left = `${event.pageX}px`;
+
+      //   document.body.appendChild(tooltip);
+      //   document.addEventListener("click", dismissTooltip);
+      // }
+
+      // // function dismissTooltip() {
+      // //   if (tooltip && !tooltip.contains(event.target)) {
+      // //     tooltip.remove();
+      // //     tooltip = null;
+      // //     document.removeEventListener("click", dismissTooltip); // Clean up the event listener
+      // //   }
+      // // }
+
+      // function applyTextFormat(type) {
+      //   const selection = window.getSelection();
+      //   const selectedText = selection.toString();
+
+      //   let formattedText;
+      //   if (type === "bold") {
+      //     formattedText = `**${selectedText}**`;
+      //   } else if (type === "italic") {
+      //     formattedText = `*${selectedText}*`;
+      //   }
+
+      //   replaceSelectedText(formattedText);
+      // }
+
+      // function sendToAI(text) {
+      //   vscode.postMessage({
+      //     type: "sendToAIChat",
+      //     text: text,
+      //   });
+      // }
+
+      // function replaceSelectedText(newText) {
+      //   const selection = window.getSelection();
+      //   if (selection.rangeCount) {
+      //     const range = selection.getRangeAt(0);
+      //     range.deleteContents();
+      //     range.insertNode(document.createTextNode(newText));
+
+      //     dismissTooltip();
+      //   }
+      // }
+      document.addEventListener("mouseup", function (event) {
+        const selectedText = window.getSelection().toString().trim();
+        if (selectedText && !aiPopup) {
+          showSelectionTooltip(event, selectedText);
+        } else if (
+          !selectedText &&
+          tooltip &&
+          !tooltip.contains(event.target)
+        ) {
+          dismissTooltip();
+        }
+      });
+
+      function showSelectionTooltip(event, selectedText) {
+        dismissTooltip();
+        dismissAIPopup();
+
+        tooltip = document.createElement("div");
+        tooltip.className = "selection-tooltip";
+        tooltip.innerHTML = `
+    <button onclick="applyTextFormat('bold')" title="Bold">B</button>
+    <button onclick="applyTextFormat('italic')" title="Italic"><i>I</i></button>
+    <button onclick="applyTextFormat('underline')" title="Underline"><u>U</u></button>
+    <button onclick="applyTextFormat('align-left')" title="Align Left">⫷</button>
+    <button onclick="applyTextFormat('align-center')" title="Align Center">≡</button>
+    <button onclick="applyTextFormat('align-right')" title="Align Right">⫸</button>
+    <button onclick="showAIPopup(event, '${encodeURIComponent(
+      selectedText
+    )}')" title="Rewrite with AI">AI</button>
+  `;
+
+        tooltip.style.position = "absolute";
+        tooltip.style.top = `${event.pageY + 10}px`;
+        tooltip.style.left = `${event.pageX - 50}px`;
+
+        document.body.appendChild(tooltip);
+      }
+
+      function showAIPopup(event, selectedText) {
+        dismissTooltip();
+
+        aiPopup = document.createElement("div");
+        aiPopup.className = "ai-popup";
+        aiPopup.innerHTML = `
+    <textarea placeholder="Enter instructions for AI rewrite...">${decodeURIComponent(
+      selectedText
+    )}</textarea>
+    <div class="tone-selector">
+      <select>
+        <option value="professional">Professional</option>
+        <option value="casual">Casual</option>
+      </select>
+    </div>
+    <button onclick="rewriteWithAI()">Rewrite</button>
+    <button onclick="dismissAIPopup()">Cancel</button>
+  `;
+
+        aiPopup.style.position = "absolute";
+        aiPopup.style.top = `${event.pageY + 10}px`;
+        aiPopup.style.left = `${event.pageX - 50}px`;
+
+        document.body.appendChild(aiPopup);
+      }
+
+      function dismissTooltip() {
+        if (tooltip) {
+          tooltip.remove();
+          tooltip = null;
+        }
+      }
+
+      function dismissAIPopup() {
+        if (aiPopup) {
+          aiPopup.remove();
+          aiPopup = null;
+        }
+      }
+
+      function applyTextFormat(type) {
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString();
+
+        let formattedText = selectedText;
+        switch (type) {
+          case "bold":
+            formattedText = `**${selectedText}**`;
+            break;
+          case "italic":
+            formattedText = `*${selectedText}*`;
+            break;
+          case "underline":
+            formattedText = `_${selectedText}_`;
+            break;
+          case "align-left":
+            formattedText = `<div style="text-align: left">${selectedText}</div>`;
+            break;
+          case "align-center":
+            formattedText = `<div style="text-align: center">${selectedText}</div>`;
+            break;
+          case "align-right":
+            formattedText = `<div style="text-align: right">${selectedText}</div>`;
+            break;
+        }
+
+        const textNode = document.createTextNode(formattedText);
+        range.deleteContents();
+        range.insertNode(textNode);
+
+        dismissTooltip();
+      }
+
+      function rewriteWithAI() {
+        const instructions = aiPopup.querySelector("textarea").value;
+        const tone = aiPopup.querySelector("select").value;
+
+        // Send message to VSCode extension
+        vscode.postMessage({
+          type: "rewriteWithAI",
+          content: {
+            text: instructions,
+            tone: tone,
+          },
+        });
+
+        dismissAIPopup();
+      }
+
+      // Close tooltips when clicking outside
+      document.addEventListener("click", function (event) {
+        if (tooltip && !tooltip.contains(event.target)) {
+          dismissTooltip();
+        }
+        if (aiPopup && !aiPopup.contains(event.target)) {
+          dismissAIPopup();
+        }
+      });
+      /////////
       window.addEventListener("message", (event) => {
         const message = event.data;
         switch (message.type) {
           case "update":
+          case "documentSync":
             console.log("Received document:", message.document);
 
             if (!message.document) {
@@ -657,10 +935,14 @@
               console.log("template.html : Try block of documentSync");
               // currentDocument = JSON.parse(message.document);
               currentDocument = message.document;
+
+              // Robust defaulting
+
               currentDocument.title = currentDocument.title || "Untitled";
               currentDocument.description = currentDocument.description || "";
               currentDocument.blocks = currentDocument.blocks || [];
 
+              // Update UI
               document.getElementById("title-input").value =
                 currentDocument.title;
               blockCounter = currentDocument.blocks.length;

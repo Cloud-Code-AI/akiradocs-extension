@@ -197,7 +197,14 @@ export class EditorPanel {
         ],
       }
     );
+    const iconPathLight = vscode.Uri.file(
+      path.join(extensionUri.fsPath, "media", "akira_icon.png")
+    );
+    const iconPathDark = vscode.Uri.file(
+      path.join(extensionUri.fsPath, "media", "akira_icon.png")
+    );
 
+    panel.iconPath = { light: iconPathLight, dark: iconPathDark };
     EditorPanel.currentPanel = new EditorPanel(
       panel,
       extensionUri,
