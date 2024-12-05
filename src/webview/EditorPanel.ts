@@ -71,7 +71,7 @@ export class EditorPanel {
       null,
       this._disposables
     );
-    //
+    // TODO: Evaluate the necessity of this code block.
     // this._panel.webview.onDidReceiveMessage(
     //   async (message) => {
     //     switch (message.type) {
@@ -243,7 +243,7 @@ export class EditorPanel {
 
     const panel = vscode.window.createWebviewPanel(
       "akiraEditor",
-      `AkiraDocs Editor - ${path.basename(documentUri.fsPath)}`, // Title includes file name
+      `${path.parse(documentUri.fsPath).name}`,
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
