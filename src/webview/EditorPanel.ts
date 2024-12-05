@@ -11,12 +11,14 @@ import * as path from "path";
 import { Document, JsonParser } from "../utils/jsonParser";
 
 export class EditorPanel {
-  public static currentPanel: EditorPanel | undefined;
-  private readonly _panel: vscode.WebviewPanel;
+  // public static currentPanel: EditorPanel | undefined;
+  // private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
   private _document!: Document;
   private _documentUri: vscode.Uri;
   private _extensionUri: vscode.Uri;
+  private static panels: Map<string, EditorPanel> = new Map(); // Store panels by document URI
+  private readonly _panel: vscode.WebviewPanel;
 
   private constructor(
     panel: vscode.WebviewPanel,
@@ -69,17 +71,18 @@ export class EditorPanel {
       null,
       this._disposables
     );
-    this._panel.webview.onDidReceiveMessage(
-      async (message) => {
-        switch (message.type) {
-          case "updateDocument":
-            this._updateDocument(message.content);
-            break;
-        }
-      },
-      null,
-      this._disposables
-    );
+    //
+    // this._panel.webview.onDidReceiveMessage(
+    //   async (message) => {
+    //     switch (message.type) {
+    //       case "updateDocument":
+    //         this._updateDocument(message.content);
+    //         break;
+    //     }
+    //   },
+    //   null,
+    //   this._disposables
+    // );
   }
 
   private _updateDocument(content: string) {
@@ -170,6 +173,59 @@ export class EditorPanel {
     }
   }
 
+  // public static createOrShow(
+  //   extensionUri: vscode.Uri,
+  //   documentUri: vscode.Uri
+  // ) {
+  //   console.log("Document URI:", documentUri.toString());
+  //   const column = vscode.window.activeTextEditor
+  //     ? vscode.window.activeTextEditor.viewColumn
+  //     : undefined;
+
+  //   if (EditorPanel.currentPanel) {
+  //     EditorPanel.currentPanel._panel.reveal(column);
+  //     return;
+  //   }
+
+  //   const panel = vscode.window.createWebviewPanel(
+  //     "akiraEditor",
+  //     "AkiraDocs Editor",
+  //     column || vscode.ViewColumn.One,
+  //     {
+  //       enableScripts: true,
+  //       localResourceRoots: [
+  //         vscode.Uri.joinPath(extensionUri, "media"),
+  //         vscode.Uri.joinPath(extensionUri, "out"),
+  //         vscode.Uri.joinPath(extensionUri, "src", "webview"),
+  //       ],
+  //     }
+  //   );
+  //   const iconPathLight = vscode.Uri.file(
+  //     path.join(extensionUri.fsPath, "media", "akira_icon.png")
+  //   );
+  //   const iconPathDark = vscode.Uri.file(
+  //     path.join(extensionUri.fsPath, "media", "akira_icon.png")
+  //   );
+
+  //   panel.iconPath = { light: iconPathLight, dark: iconPathDark };
+  //   EditorPanel.currentPanel = new EditorPanel(
+  //     panel,
+  //     extensionUri,
+  //     documentUri
+  //   );
+
+  //   vscode.workspace.fs.readFile(documentUri).then((content) => {
+  //     try {
+  //       const parsedDocument = JsonParser.parseDocument(content.toString());
+  //       EditorPanel.currentPanel?._panel.webview.postMessage({
+  //         type: "documentSync",
+  //         document: parsedDocument,
+  //       });
+  //     } catch (error) {
+  //       vscode.window.showErrorMessage("Failed to parse document");
+  //     }
+  //   });
+  // }
   public static createOrShow(
     extensionUri: vscode.Uri,
     documentUri: vscode.Uri
@@ -179,14 +235,15 @@ export class EditorPanel {
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
 
-    if (EditorPanel.currentPanel) {
-      EditorPanel.currentPanel._panel.reveal(column);
+    const existingPanel = EditorPanel.panels.get(documentUri.toString());
+    if (existingPanel) {
+      existingPanel._panel.reveal(column); // Reveal existing panel
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
       "akiraEditor",
-      "AkiraDocs Editor",
+      `AkiraDocs Editor - ${path.basename(documentUri.fsPath)}`, // Title includes file name
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -197,6 +254,7 @@ export class EditorPanel {
         ],
       }
     );
+
     const iconPathLight = vscode.Uri.file(
       path.join(extensionUri.fsPath, "media", "akira_icon.png")
     );
@@ -205,16 +263,16 @@ export class EditorPanel {
     );
 
     panel.iconPath = { light: iconPathLight, dark: iconPathDark };
-    EditorPanel.currentPanel = new EditorPanel(
-      panel,
-      extensionUri,
-      documentUri
-    );
 
+    // Create a new instance of EditorPanel and store it in the map
+    const newPanel = new EditorPanel(panel, extensionUri, documentUri);
+    EditorPanel.panels.set(documentUri.toString(), newPanel);
+
+    // Read the document content and send it to the webview
     vscode.workspace.fs.readFile(documentUri).then((content) => {
       try {
         const parsedDocument = JsonParser.parseDocument(content.toString());
-        EditorPanel.currentPanel?._panel.webview.postMessage({
+        newPanel._panel.webview.postMessage({
           type: "documentSync",
           document: parsedDocument,
         });
