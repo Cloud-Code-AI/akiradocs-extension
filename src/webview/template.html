@@ -250,13 +250,12 @@
         overflow-x: auto;
       }
       .selection-tooltip {
-        position: absolute;
         background: var(--vscode-editor-background);
         border: 1px solid var(--vscode-widget-border);
         border-radius: 4px;
-        padding: 4px;
         display: flex;
         gap: 4px;
+        padding: 4px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         z-index: 1000;
       }
@@ -273,7 +272,6 @@
         border-radius: 4px;
         color: var(--vscode-button-foreground);
         cursor: pointer;
-        font-size: 14px;
       }
 
       .selection-tooltip button:hover {
@@ -427,59 +425,105 @@
       }
 
       function renderPreview() {
+        console.log("Rendering preview with document:", currentDocument);
+
         const titlePreview = document.getElementById("document-title-preview");
         titlePreview.innerHTML = `
-          <h1>${currentDocument.title}</h1>
+        <h1>${currentDocument.title || "Untitled Document"}</h1>
 
-          <div class="metadata">
-              <p>${currentDocument.description}</p>
-              <p>Author: ${currentDocument.author}</p>
-              <p>Published: ${currentDocument.publishDate}</p>
-              <p>Category: ${currentDocument.category}</p>
-              <p>Keywords: ${currentDocument.keywords.join(", ")}</p>
-          </div>
+        <div class="metadata">
+          ${
+            currentDocument.description
+              ? `<p>${currentDocument.description}</p>`
+              : ""
+          }
+          ${
+            currentDocument.author
+              ? `<p>Author: ${currentDocument.author}</p>`
+              : ""
+          }
+          ${
+            currentDocument.publishDate
+              ? `<p>Published: ${currentDocument.publishDate}</p>`
+              : ""
+          }
+          ${
+            currentDocument.category
+              ? `<p>Category: ${currentDocument.category}</p>`
+              : ""
+          }
+          ${
+            currentDocument.keywords && currentDocument.keywords.length
+              ? `<p>Keywords: ${currentDocument.keywords.join(", ")}</p>`
+              : ""
+          }
+        </div>
       `;
+
         const previewContainer = document.createElement("div");
         previewContainer.id = "blocks-preview";
         previewContainer.className = "preview-content";
 
-        currentDocument.blocks.forEach((block) => {
-          const blockPreview = document.createElement("div");
+        console.log("Blocks to render:", currentDocument.blocks);
 
-          switch (block.type) {
-            case "heading":
-              blockPreview.innerHTML = `<h2>${block.content}</h2>`;
-              break;
-            case "paragraph":
-              blockPreview.innerHTML = `<p>${block.content}</p>`;
-              break;
-            case "list":
-              blockPreview.innerHTML = `<ul>${block.content
-                .split("\n")
-                .map((item) => `<li>${item}</li>`)
-                .join("")}</ul>`;
-              break;
-            case "code":
-              blockPreview.innerHTML = `<pre><code>${block.content}</code></pre>`;
-              break;
-            case "image":
-              blockPreview.innerHTML = `<img src="${block.content}" alt="User uploaded image">`;
-              break;
-            case "divider":
-              blockPreview.innerHTML = `<hr>`;
-              break;
-            case "blockquote":
-              blockPreview.innerHTML = `<blockquote>${block.content}</blockquote>`;
-              break;
-            case "callout":
-              blockPreview.innerHTML = `<div class="callout">${block.content}</div>`;
-              break;
-            default:
-              blockPreview.innerHTML = `<p>${block.content}</p>`;
-          }
+        if (currentDocument.blocks && currentDocument.blocks.length > 0) {
+          currentDocument.blocks.forEach((block) => {
+            const blockPreview = document.createElement("div");
 
-          previewContainer.appendChild(blockPreview);
-        });
+            // Add console logging for each block
+            console.log("Rendering block:", block);
+
+            if (!block || !block.type) {
+              console.warn("Invalid block encountered:", block);
+              return;
+            }
+
+            switch (block.type) {
+              case "heading":
+                blockPreview.innerHTML = `<h2>${block.content || ""}</h2>`;
+                break;
+              case "paragraph":
+                blockPreview.innerHTML = `<p>${block.content || ""}</p>`;
+                break;
+              case "list":
+                blockPreview.innerHTML = `<ul>${(block.content || "")
+                  .split("\n")
+                  .map((item) => `<li>${item}</li>`)
+                  .join("")}</ul>`;
+                break;
+              case "code":
+                blockPreview.innerHTML = `<pre><code>${
+                  block.content || ""
+                }</code></pre>`;
+                break;
+              case "image":
+                blockPreview.innerHTML = `<img src="${
+                  block.content || ""
+                }" alt="User uploaded image">`;
+                break;
+              case "divider":
+                blockPreview.innerHTML = `<hr>`;
+                break;
+              case "blockquote":
+                blockPreview.innerHTML = `<blockquote>${
+                  block.content || ""
+                }</blockquote>`;
+                break;
+              case "callout":
+                blockPreview.innerHTML = `<div class="callout">${
+                  block.content || ""
+                }</div>`;
+                break;
+              default:
+                blockPreview.innerHTML = `<p>${block.content || ""}</p>`;
+            }
+
+            previewContainer.appendChild(blockPreview);
+          });
+        } else {
+          console.log("No blocks to render in preview");
+          previewContainer.innerHTML = "<p>No content to preview</p>";
+        }
 
         const existingPreview = document.getElementById("blocks-preview");
         if (existingPreview) {
@@ -489,41 +533,40 @@
           .getElementById("blocks-container")
           .appendChild(previewContainer);
       }
-
       function createBlockTypePopup(blockId) {
         const popup = document.createElement("div");
         popup.className = "block-type-popup";
         popup.innerHTML = `
-            <div class="popup-header">
-              <h2>Change block type</h2>
-              <input type="text" class="search-input" placeholder="Search for a block type">
-            </div>
-            <div class="block-options">
-              ${["Basic", "Media", "Advanced"]
-                .map(
-                  (group) => `
-                <div class="block-group">
-                  <div class="group-title">${group}</div>
-                  ${blockTypes
-                    .filter((type) => type.group === group)
+                <div class="popup-header">
+                  <h2>Change block type</h2>
+                  <input type="text" class="search-input" placeholder="Search for a block type">
+                </div>
+                <div class="block-options">
+                  ${["Basic", "Media", "Advanced"]
                     .map(
-                      (type) => `
-                    <button class="block-option" data-type="${type.type}">
-                      <span class="block-icon">${type.icon}</span>
-                      <div class="block-info">
-                        <div class="block-title">${type.label}</div>
-                        <div class="block-description">${type.description}</div>
-                      </div>
-                    </button>
+                      (group) => `
+                    <div class="block-group">
+                      <div class="group-title">${group}</div>
+                      ${blockTypes
+                        .filter((type) => type.group === group)
+                        .map(
+                          (type) => `
+                        <button class="block-option" data-type="${type.type}">
+                          <span class="block-icon">${type.icon}</span>
+                          <div class="block-info">
+                            <div class="block-title">${type.label}</div>
+                            <div class="block-description">${type.description}</div>
+                          </div>
+                        </button>
+                      `
+                        )
+                        .join("")}
+                    </div>
                   `
                     )
                     .join("")}
                 </div>
-              `
-                )
-                .join("")}
-            </div>
-          `;
+              `;
 
         return popup;
       }
@@ -584,39 +627,39 @@
           blockElement.className = "block";
           blockElement.dataset.blockId = block.id;
           blockElement.innerHTML = `
-                      <div class="block-controls">
-                          <button onclick="moveBlock('${
-                            block.id
-                          }', 'up')">▲</button>
-                          <button onclick="moveBlock('${
-                            block.id
-                          }', 'down')">▼</button>
-                      </div>
-                      <div class="block-type">
-                        <button type="button" aria-label="Change block type">${getBlockTypeIcon(
-                          block.type
-                        )}</button>
-                      </div>
-                      <div class="block-controls">
-                        <button onclick="addBlock('paragraph', '${
-                          block.id
-                        }')">+</button>
-                      </div>
-                      <div class="block-content">
-                          <textarea
-                              onblur="updateBlockContent('${
+                          <div class="block-controls">
+                              <button onclick="moveBlock('${
                                 block.id
-                              }', this.value)"
-                              rows="3"
-                              style="width: 98%;"
-                          >${block.content || ""}</textarea>
-                      </div>
-                      <div class="block-controls">
-                          <button onclick="deleteBlock('${
-                            block.id
-                          }')">✖</button>
-                      </div>
-                  `;
+                              }', 'up')">▲</button>
+                              <button onclick="moveBlock('${
+                                block.id
+                              }', 'down')">▼</button>
+                          </div>
+                          <div class="block-type">
+                            <button type="button" aria-label="Change block type">${getBlockTypeIcon(
+                              block.type
+                            )}</button>
+                          </div>
+                          <div class="block-controls">
+                            <button onclick="addBlock('paragraph', '${
+                              block.id
+                            }')">+</button>
+                          </div>
+                          <div class="block-content">
+                              <textarea
+                                  onblur="updateBlockContent('${
+                                    block.id
+                                  }', this.value)"
+                                  rows="3"
+                                  style="width: 98%;"
+                              >${block.content || ""}</textarea>
+                          </div>
+                          <div class="block-controls">
+                              <button onclick="deleteBlock('${
+                                block.id
+                              }')">✖</button>
+                          </div>
+                      `;
           editContainer.appendChild(blockElement);
           initBlockTypeButton(blockElement);
         });
@@ -710,73 +753,65 @@
 
       /////////////testing text editing
 
-      // document.addEventListener("mouseup", function (event) {
-      //   const selectedText = window.getSelection().toString().trim();
-      //   if (selectedText) {
-      //     showSelectionTooltip(event, selectedText);
-      //   } else {
-      //     dismissTooltip();
-      //   }
-      // });
+      document.addEventListener("mouseup", function (event) {
+        const selectedText = window.getSelection().toString().trim();
+        if (selectedText) {
+          showSelectionTooltip(event, selectedText);
+        } else {
+          dismissTooltip();
+        }
+      });
 
-      // function showSelectionTooltip(event, selectedText) {
-      //   dismissTooltip();
+      function showSelectionTooltip(event, selectedText) {
+        dismissTooltip();
 
-      //   tooltip = document.createElement("div");
-      //   tooltip.className = "selection-tooltip";
-      //   tooltip.innerHTML = `
-      //     <button onclick="applyTextFormat('bold')">B</button>
-      //     <button onclick="applyTextFormat('italic')">I</button>
-      //     <button onclick="sendToAI('${selectedText}')">AI</button>
-      // `;
+        tooltip = document.createElement("div");
+        tooltip.className = "selection-tooltip";
+        tooltip.innerHTML = `
+              <button onclick="applyTextFormat('bold')">B</button>
+              <button onclick="applyTextFormat('italic')">I</button>
+              <button onclick="sendToAI('${selectedText}')">AI</button>
+          `;
 
-      //   tooltip.style.position = "absolute";
-      //   tooltip.style.top = `${event.pageY}px`;
-      //   tooltip.style.left = `${event.pageX}px`;
+        tooltip.style.position = "absolute";
+        tooltip.style.top = `${event.pageY}px`;
+        tooltip.style.left = `${event.pageX}px`;
 
-      //   document.body.appendChild(tooltip);
-      //   document.addEventListener("click", dismissTooltip);
-      // }
+        document.body.appendChild(tooltip);
+        document.addEventListener("click", dismissTooltip);
+      }
 
-      // // function dismissTooltip() {
-      // //   if (tooltip && !tooltip.contains(event.target)) {
-      // //     tooltip.remove();
-      // //     tooltip = null;
-      // //     document.removeEventListener("click", dismissTooltip); // Clean up the event listener
-      // //   }
-      // // }
+      function applyTextFormat(type) {
+        const selection = window.getSelection();
+        const selectedText = selection.toString();
 
-      // function applyTextFormat(type) {
-      //   const selection = window.getSelection();
-      //   const selectedText = selection.toString();
+        let formattedText;
+        if (type === "bold") {
+          formattedText = `**${selectedText}**`;
+        } else if (type === "italic") {
+          formattedText = `*${selectedText}*`;
+        }
 
-      //   let formattedText;
-      //   if (type === "bold") {
-      //     formattedText = `**${selectedText}**`;
-      //   } else if (type === "italic") {
-      //     formattedText = `*${selectedText}*`;
-      //   }
+        replaceSelectedText(formattedText);
+      }
 
-      //   replaceSelectedText(formattedText);
-      // }
+      function sendToAI(text) {
+        vscode.postMessage({
+          type: "sendToAIChat",
+          text: text,
+        });
+      }
 
-      // function sendToAI(text) {
-      //   vscode.postMessage({
-      //     type: "sendToAIChat",
-      //     text: text,
-      //   });
-      // }
+      function replaceSelectedText(newText) {
+        const selection = window.getSelection();
+        if (selection.rangeCount) {
+          const range = selection.getRangeAt(0);
+          range.deleteContents();
+          range.insertNode(document.createTextNode(newText));
 
-      // function replaceSelectedText(newText) {
-      //   const selection = window.getSelection();
-      //   if (selection.rangeCount) {
-      //     const range = selection.getRangeAt(0);
-      //     range.deleteContents();
-      //     range.insertNode(document.createTextNode(newText));
-
-      //     dismissTooltip();
-      //   }
-      // }
+          dismissTooltip();
+        }
+      }
       document.addEventListener("mouseup", function (event) {
         const selectedText = window.getSelection().toString().trim();
         if (selectedText && !aiPopup) {
@@ -797,16 +832,16 @@
         tooltip = document.createElement("div");
         tooltip.className = "selection-tooltip";
         tooltip.innerHTML = `
-    <button onclick="applyTextFormat('bold')" title="Bold">B</button>
-    <button onclick="applyTextFormat('italic')" title="Italic"><i>I</i></button>
-    <button onclick="applyTextFormat('underline')" title="Underline"><u>U</u></button>
-    <button onclick="applyTextFormat('align-left')" title="Align Left">⫷</button>
-    <button onclick="applyTextFormat('align-center')" title="Align Center">≡</button>
-    <button onclick="applyTextFormat('align-right')" title="Align Right">⫸</button>
-    <button onclick="showAIPopup(event, '${encodeURIComponent(
-      selectedText
-    )}')" title="Rewrite with AI">AI</button>
-  `;
+            <button onclick="applyTextFormat('bold')" title="Bold">B</button>
+            <button onclick="applyTextFormat('italic')" title="Italic"><i>I</i></button>
+            <button onclick="applyTextFormat('underline')" title="Underline"><u>U</u></button>
+            <button onclick="applyTextFormat('align-left')" title="Align Left">⫷</button>
+            <button onclick="applyTextFormat('align-center')" title="Align Center">≡</button>
+            <button onclick="applyTextFormat('align-right')" title="Align Right">⫸</button>
+            <button onclick="showAIPopup(event, '${encodeURIComponent(
+              selectedText
+            )}')" title="Rewrite with AI">AI</button>
+          `;
 
         tooltip.style.position = "absolute";
         tooltip.style.top = `${event.pageY + 10}px`;
@@ -821,18 +856,18 @@
         aiPopup = document.createElement("div");
         aiPopup.className = "ai-popup";
         aiPopup.innerHTML = `
-    <textarea placeholder="Enter instructions for AI rewrite...">${decodeURIComponent(
-      selectedText
-    )}</textarea>
-    <div class="tone-selector">
-      <select>
-        <option value="professional">Professional</option>
-        <option value="casual">Casual</option>
-      </select>
-    </div>
-    <button onclick="rewriteWithAI()">Rewrite</button>
-    <button onclick="dismissAIPopup()">Cancel</button>
-  `;
+            <textarea placeholder="Enter instructions for AI rewrite...">${decodeURIComponent(
+              selectedText
+            )}</textarea>
+            <div class="tone-selector">
+              <select>
+                <option value="professional">Professional</option>
+                <option value="casual">Casual</option>
+              </select>
+            </div>
+            <button onclick="rewriteWithAI()">Rewrite</button>
+            <button onclick="dismissAIPopup()">Cancel</button>
+          `;
 
         aiPopup.style.position = "absolute";
         aiPopup.style.top = `${event.pageY + 10}px`;
@@ -888,33 +923,6 @@
 
         dismissTooltip();
       }
-
-      function rewriteWithAI() {
-        const instructions = aiPopup.querySelector("textarea").value;
-        const tone = aiPopup.querySelector("select").value;
-
-        // Send message to VSCode extension
-        vscode.postMessage({
-          type: "rewriteWithAI",
-          content: {
-            text: instructions,
-            tone: tone,
-          },
-        });
-
-        dismissAIPopup();
-      }
-
-      // Close tooltips when clicking outside
-      document.addEventListener("click", function (event) {
-        if (tooltip && !tooltip.contains(event.target)) {
-          dismissTooltip();
-        }
-        if (aiPopup && !aiPopup.contains(event.target)) {
-          dismissAIPopup();
-        }
-      });
-      /////////
       window.addEventListener("message", (event) => {
         const message = event.data;
         switch (message.type) {
