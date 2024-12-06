@@ -61,10 +61,15 @@ class CompiledItem extends vscode.TreeItem {
   ) {
     super(label, collapsibleState);
 
-    this.command = {
-      command: "akiradocs.openEditor",
-      title: "Open Editor",
-      arguments: [resourceUri],
-    };
+    if (label.endsWith(".json")) {
+      this.command = {
+        command: "akiradocs.openEditor",
+        title: "Open Editor",
+        arguments: [resourceUri],
+      };
+    } else {
+      // Disable command for non-JSON files and folders
+      this.command = undefined;
+    }
   }
 }

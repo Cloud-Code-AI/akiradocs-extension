@@ -72,17 +72,17 @@ export class EditorPanel {
       this._disposables
     );
     // TODO: Evaluate the necessity of this code block.
-    // this._panel.webview.onDidReceiveMessage(
-    //   async (message) => {
-    //     switch (message.type) {
-    //       case "updateDocument":
-    //         this._updateDocument(message.content);
-    //         break;
-    //     }
-    //   },
-    //   null,
-    //   this._disposables
-    // );
+    this._panel.webview.onDidReceiveMessage(
+      async (message) => {
+        switch (message.type) {
+          case "updateDocument":
+            this._updateDocument(message.content);
+            break;
+        }
+      },
+      null,
+      this._disposables
+    );
   }
 
   private _updateDocument(content: string) {
